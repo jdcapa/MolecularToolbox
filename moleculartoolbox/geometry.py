@@ -1,13 +1,12 @@
-#!/usr/bin/python
-
+# -*- coding: utf-8 -*-
 import sys
 import re
 import numpy as np
 from chemphysconst import PeriodicTable
+from chemphysconst import Constants
 from collections import OrderedDict
 from operator import itemgetter
 from system_tools import SystemTools
-from constants import Constants
 from numpy import linalg
 
 FLOAT = np.float128
@@ -627,7 +626,7 @@ class Geometry(object):
                     coordination_number += 1
         return coordination_number
 
-    def is_bound(self, i, j):
+    def is_bound(self, i, j, tollerance_factor=1.1):
         '''
         Return > 0 if i and j are bound.
 
@@ -636,7 +635,6 @@ class Geometry(object):
         triple-bond. This is determined through the use of Pyykkö's covalent
         radii.
         '''
-        tollerance_factor = 1.1  # must be > 1
         maximum_covalent = 2.32 * 2 * tollerance_factor  # 2.32 is Caesium
         distance = self.distance(i, j)
         if distance > maximum_covalent:
