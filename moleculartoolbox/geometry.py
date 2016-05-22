@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import sys
 import re
+import os
 import numpy as np
 from chemphysconst import PeriodicTable
 from chemphysconst import Constants
 from collections import OrderedDict
 from operator import itemgetter
-from system_tools import SystemTools
 from numpy import linalg
 
 FLOAT = np.float128
-ST = SystemTools()
 CONST = Constants()
 PT = PeriodicTable()
 
@@ -97,7 +96,13 @@ class Geometry(object):
 
         if type(geometry) is str:
             # This is interpreted as a file name
-            new_geometry = self.analyse(ST.file2list(geometry))
+            list_of_lines = []
+            if not os.path.exists(geometry):
+                sys.exit('{0} does not exist.'.format(geometry))
+            with open(geometry) as gf:
+                list_of_lines = [l.strip() for l in gf]
+            new_geometry = self.analyse(list_of_lines)
+
         elif type(geometry) is list:
             # print geometry[0], type(geometry[0])
             if type(geometry[0]) is str:
