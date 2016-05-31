@@ -102,7 +102,7 @@ class Atom(object):
                 if radii:
                     return radii
                 else:
-                    error_msg = ("Element.covalent_radii(): " +
+                    error_msg = ("Atom.covalent_radii(): " +
                                  "Could not find any covalent radius for " +
                                  "element {} .").format(self.symbol)
                     sys.exit(error_msg)
