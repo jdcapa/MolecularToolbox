@@ -52,6 +52,7 @@ class Atom(object):
         # Keyword analysis
         floats = [float, np.float64, np.float128]
         if ("mass" in kwargs and type(kwargs["mass"]) in floats):
+            # The keyword mass overwrites all other mass.
             self.mass = kwargs["mass"]
 
     def analyse_coordinates(self, coordinates=[0.0, 0.0, 0.0]):
