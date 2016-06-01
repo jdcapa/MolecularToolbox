@@ -16,6 +16,7 @@ class Atom(object):
     """Contains the basic properties of an Atom and its xyz position."""
 
     def __init__(self, symbol, coordinates=[0.0, 0.0, 0.0], **kwargs):
+        """Initiat the atom with at least a symble and some coordinates."""
         super(Atom, self).__init__()
         self.setter(symbol, kwargs)
         self.analyse_coordinates(coordinates)
@@ -33,7 +34,7 @@ class Atom(object):
             self.element = symbol
             self.type = "ECP"
         else:  # Normal Atom
-            self.pt_entry = PT.element(self.symbol)
+            self.pt_entry = PT.element(self.element)
             self.type = "Real"
             self.element = self.pt_entry.symbol
             self.mass = self.pt_entry.mass
@@ -104,7 +105,7 @@ class Atom(object):
                 else:
                     error_msg = ("Atom.covalent_radii(): " +
                                  "Could not find any covalent radius for " +
-                                 "element {} .").format(self.symbol)
+                                 "element {} .").format(self.element)
                     sys.exit(error_msg)
         return radii
 
@@ -133,4 +134,4 @@ class Atom(object):
         vec = np.around((self.coordinates * len_fac), decimals=precision + 1)
         vec += 0
         vec_str = vec_str.format(*vec)
-        return tab + self.symbol + vec_str
+        return tab + self.element + vec_str
