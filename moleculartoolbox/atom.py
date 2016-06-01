@@ -38,11 +38,11 @@ class Atom(object):
         elif re_isotope.match(symbol):  # Isotope
             element = re_isotope.search(symbol).group(2)
             isotope = int(re_isotope.search(symbol).group(1))
-            self.pt_entry = PT.element(element)
-            self.type = "Real"
-            self.element = self.pt_entry.symbol
+            self.setter(element, kwargs)
             self.mass = self.pt_entry.isotope(isotope).atomic_mass
-            self.number_of_electrons = self.pt_entry.number
+        elif symbol == "D":  # Special case of Deuterium
+            self.setter("H", kwargs)
+            self.mass = self.pt_entry.isotope(2).atomic_mass
         else:  # Normal Atom
             self.pt_entry = PT.element(symbol)
             self.type = "Real"
