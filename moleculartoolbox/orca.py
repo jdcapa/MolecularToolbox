@@ -39,7 +39,7 @@ class OrcaOutput(object):
 
     def filenames(self, source_directory, basename):
         """
-        Define all the file names (min: input and output file).
+        Define all the orca files (min: input and output file).
 
         Currently supported:
             .inp
@@ -47,7 +47,6 @@ class OrcaOutput(object):
             .engrad
             .hess
         """
-
         # 1. Input file
         if not basename:
             # If basename is not provided, try to find one using an input file.
@@ -443,7 +442,7 @@ class OrcaOutput(object):
 
     def find_displacements(self):
         """
-        Finds all displacement directories in self.directory.
+        Find all displacement directories in self.directory.
 
         Return a list containing strings of the format [directory, basename].
         """

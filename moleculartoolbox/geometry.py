@@ -349,7 +349,7 @@ class Geometry(object):
         return len(self.atoms)
 
     def nElectrons(self):
-        '''Return the electron count of a molecule.'''
+        """Return the electron count of a molecule."""
         electron_count = -1 * self.charge
         for atom in self.atoms:
             electron_count += atom.number_of_electrons

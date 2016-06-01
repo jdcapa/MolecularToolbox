@@ -31,24 +31,24 @@ def print_harmonics(harmonic, scaling=1.0):
     nTransRot = harmonic.geometry.nTransRot()
     if np.all(harmonic.dipole_derivatives):
         output_string += " " * 4 + "I [km/mol]\n" + "-" * 28 + "\n"
-        tmp_str = '{0:> 3,d} {1} {2:>10,.4f}\n'
+        tmp_str = '{0:> 4,d} {1} {2:>10,.4f}\n'
         harm_intensities = harmonic.harmonic_intensities()
         for i, f in enumerate(harm_frequencies):
             if i == nTransRot:
-                output_string += "  " + "-" * 25 + "\n"
+                output_string += "   " + "-" * 25 + "\n"
             output_string += tmp_str.format(i + 1,
                                             print_complex(f, scaling, 4),
                                             harm_intensities[i])
         output_string += "-" * 28 + "\n"
     else:
-        output_string += "\n" + "-" * 16 + "\n"
-        tmp_str = '{0:> 3,d} {1}\n'
+        output_string += "\n" + "-" * 17 + "\n"
+        tmp_str = '{0:> 4,d} {1}\n'
         for i, f in enumerate(harm_frequencies):
             if i == nTransRot:
-                output_string += "  " + "-" * 14 + "\n"
+                output_string += "   " + "-" * 13 + "\n"
             output_string += tmp_str.format(i + 1,
                                             print_complex(f, scaling, 4))
-        output_string += "-" * 16 + "\n"
+        output_string += "-" * 17 + "\n"
     return output_string
 
 
@@ -182,10 +182,9 @@ def print_force_constants(fc_mat, geometry,
     return output_string
 
 
-def print_cartesian_diplacements(harmonic,
-                                 unit="bohr", precision=9):
+def print_cartesian_diplacements(harmonic, unit="bohr", precision=9):
     """
-    Returns a string of back transformed normal coordinates.
+    Return a string of back transformed normal coordinates.
 
     Unit: Bohr or Angstroem.
     This method should produce the same numbers as in the cfour QUADRATURE
@@ -235,7 +234,7 @@ def print_normal_coordinates(normal_modes, nTransRot=6):
 
 def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):
     """
-    Prints Matthew's harmonic VPT2 derivative matrix
+    Print Matthew's harmonic VPT2 derivative matrix.
 
     This matrix can indicate the presence of Fermi resonances.
     """

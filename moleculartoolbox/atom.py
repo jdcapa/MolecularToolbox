@@ -3,6 +3,7 @@
 from __future__ import print_function
 from __future__ import division
 import sys
+import re
 import numpy as np
 from chemphysconst import PeriodicTable
 from chemphysconst import Constants
@@ -27,12 +28,21 @@ class Atom(object):
         self.pt_entry = None
         self.mass = 0.0
         self.number_of_electrons = 0
+        re_isotope = re.compile("(\d+)\^*(\w+)")
         if symbol == "X":  # Dummy Atom
             self.element = "X"
             self.type = "Dummy"
         elif ">" in symbol:  # ECP
             self.element = symbol
             self.type = "ECP"
+        elif re_isotope.match(symbol):  # Isotope
+            element = re_isotope.search(symbol).group(2)
+            isotope = int(re_isotope.search(symbol).group(1))
+            self.pt_entry = PT.element(element)
+            self.type = "Real"
+            self.element = self.pt_entry.symbol
+            self.mass = self.pt_entry.isotope(isotope).atomic_mass
+            self.number_of_electrons = self.pt_entry.number
         else:  # Normal Atom
             self.pt_entry = PT.element(symbol)
             self.type = "Real"

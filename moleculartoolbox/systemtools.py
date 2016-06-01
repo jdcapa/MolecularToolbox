@@ -34,6 +34,7 @@ def run_process(command, silent=False):
 
 
 def errorprint(*args, **kwargs):
+    """Print args to standard error."""
     print(*args, file=sys.stderr, **kwargs)
 
 
@@ -99,9 +100,7 @@ def list2file(output_list, output_file_path):
 
 
 def find_file_in_PP(file_name):
-    """
-    Return the full path of a file, if it's found somewhere in the $PYTHONPATH.
-    """
+    """Return the full path of a file, if it's found in the $PYTHONPATH."""
     for path in sys.path:
         path_to_file = os.path.join(path, file_name)
         if os.path.exists(path_to_file):

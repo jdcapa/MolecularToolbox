@@ -127,7 +127,7 @@ class Harmonic(object):
 
     def rotate_Hessian(self, x_rot):
         """
-        Rotates the Hessian according to a rotational matrix.
+        Rotate the Hessian according to a rotational matrix.
 
         This matrix is usually obtained by diagonalising the moment of inertia
          tensor (or any other 3x3 rotational matrix).
@@ -176,7 +176,7 @@ class Harmonic(object):
 
     def harmonic_frequencies(self, diag_Hess, unit="1/cm"):
         """
-        Returns the harmonic frequencies.
+        Return the harmonic frequencies.
 
         This assumes a diagonalised Hessian and comes in units Eh/(amu*bohr^2).
         Units:
