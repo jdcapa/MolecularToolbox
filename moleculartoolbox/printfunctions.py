@@ -8,7 +8,7 @@ import sys
 TAB = " " * 2
 
 
-def print_complex(np_complex, precision=6):
+def print_complex(np_complex, scaling=1.0, precision=6):
     """Return a string of a (numpy) complex number."""
     freq_f = "{{0:> {},.{}f}}".format(7 + precision, precision)
     if np_complex.imag:
@@ -20,10 +20,10 @@ def print_complex(np_complex, precision=6):
         else:
             return (freq_f + "i").format(np_complex.imag)
     else:
-        return (freq_f + " ").format(np_complex.real)
+        return (freq_f + " ").format(np_complex.real * scaling)
 
 
-def print_harmonics(harmonic):
+def print_harmonics(harmonic, scaling=1.0):
     """Return an output string containing harmonic frequencies in 1/cm."""
     output_string = "Harmonic vibrational properties\n"
     output_string += "  i   v [1/cm]"
@@ -37,7 +37,7 @@ def print_harmonics(harmonic):
             if i == nTransRot:
                 output_string += "  " + "-" * 25 + "\n"
             output_string += tmp_str.format(i + 1,
-                                            print_complex(f, 4),
+                                            print_complex(f, scaling, 4),
                                             harm_intensities[i])
         output_string += "-" * 28 + "\n"
     else:
@@ -46,7 +46,8 @@ def print_harmonics(harmonic):
         for i, f in enumerate(harm_frequencies):
             if i == nTransRot:
                 output_string += "  " + "-" * 14 + "\n"
-            output_string += tmp_str.format(i + 1, print_complex(f, 4))
+            output_string += tmp_str.format(i + 1,
+                                            print_complex(f, scaling, 4))
         output_string += "-" * 16 + "\n"
     return output_string
 
@@ -87,8 +88,8 @@ def print_rigid_rotational_constants(harmonic, model='rigid'):
     if model == 'rigid':
         abc_e_M = harmonic.rigid_rotational_constants("MHz")
         abc_e_c = harmonic.rigid_rotational_constants("1/cm")
-        r_type = harmonic.geometry.rotational_symmetry()[1]
-        output_string += " {} molecule)\n".format(r_type.title())
+        r_type = harmonic.geometry.rot_prop.rotational_symmetry()[1]
+        output_string += "{} molecule)\n".format(r_type.title())
         output_string += '    {:^12} {:^12}\n'.format('1/cm', 'MHz')
         for i, l in enumerate(['A', 'B', 'C']):
             if abc_e_c[i] > 1e-5:

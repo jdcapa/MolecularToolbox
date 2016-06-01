@@ -10,7 +10,7 @@ import printfunctions as PF
 
 FLOAT = np.float128
 CONST = Constants()
-COMPLEX = np.comlex256
+COMPLEX = np.complex256
 
 
 class Harmonic(object):
@@ -90,9 +90,9 @@ class Harmonic(object):
         c = CONST.speed_of_light()  # m/s
 
         # Obtain the original moment of inertia in u*Angstrom^2
-        moIs = np.diag(self.geometry.moment_of_inertia_tensor())
+        moIs = np.diag(self.geometry.rot_prop.moment_of_inertia_tensor())
         if sort:
-            moIs = self.geometry.rotational_symmetry()[0]
+            moIs = self.geometry.rot_prop.rotational_symmetry()[0]
 
         # Generate rotational constants from the moments of inertia
         abc_e_in_Hz = np.zeros((3,), dtype=FLOAT)

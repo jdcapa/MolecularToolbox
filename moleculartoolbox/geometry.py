@@ -27,11 +27,11 @@ class Geometry(object):
     The Geometry class requires the appended Element class!
     """
 
-    def __init__(self, geometry, **kwargs):
+    def __init__(self, geometry, **kwarg):
         """
         Initiate with a geometry and some extra arguments.
 
-        kwargs can contain:
+        kwarg can contain:
         'charge' - type int (total charge of the molecule)
         'mult' | 'multiplicity' - type int (multiplicity of the molecule)
         'geom_type' - type str (type of the geometry provided [xyz|zmat])
@@ -40,39 +40,32 @@ class Geometry(object):
         'pure' - type bool (removes all non-real atoms [i.e. dummys and ECPs])
         """
         super(Geometry, self).__init__()
-        self.kwargs = self.check_keywords(kwargs)
+        self.kwarg = self.check_keywords(kwarg)
         self.set_defaults()
         self.atoms = self.analyse(geometry)
+        self.multiplicity = self.check_mult()
         if self.kwarg['pure']:
             self.atoms = self.purify_geometry()
         self.nAtoms = self.nAtoms()
-        self.analyse_comment()
+        # self.analyse_comment()
         self.raw_geometry = geometry
         self.rot_prop = Rotation(self)
 
-    def check_keywords(self, kwargs):
+    def check_keywords(self, kwarg):
         """Check if all necessary keywords are defined."""
         possible_keys = ['charge', 'mult', 'multiplicity', 'geom_type',
                          'distance_units', 'use_own_masses', 'pure']
         for key in possible_keys:
-            if key not in kwargs:
-                kwargs[key] = ""
-        return kwargs
+            if key not in kwarg:
+                kwarg[key] = ""
+        return kwarg
 
     def set_defaults(self):
-        """Analyse the kwargs and determines defaults."""
+        """Analyse the kwarg and determines defaults."""
         if self.kwarg["charge"]:
             self.charge = self.kwarg["charge"]
         else:
             self.charge = 0
-
-        if (self.kwarg["mult"] or self.kwarg["multiplicity"]):
-            if self.kwarg["multiplicity"]:
-                self.multiplicity = self.check_mult(self.kwarg["multiplicity"])
-            else:
-                self.multiplicity = self.check_mult(self.kwarg["mult"])
-        else:
-            self.multiplicity = self.check_mult(1, False)
 
         if self.kwarg["geom_type"]:
             self.geom_type = self.kwarg["geom_type"]
@@ -95,7 +88,7 @@ class Geometry(object):
         self.has_zmato = False
         self.rms_gradient = 1.0
 
-    def check_mult(self, multiplicity, warn=True):
+    def check_mult(self, multiplicity=None):
         """
         Check whether this multiplicity is possible.
 
@@ -105,6 +98,17 @@ class Geometry(object):
         """
         def is_even(n):
             return [1, 0][n % 2]
+
+        warn = True
+        if not multiplicity:
+            if (self.kwarg["mult"] or self.kwarg["multiplicity"]):
+                if self.kwarg["multiplicity"]:
+                    multiplicity = self.kwarg["multiplicity"]
+                else:
+                    multiplicity = self.kwarg["mult"]
+            else:
+                multiplicity = 1
+                warn = False
 
         if multiplicity < 1:
             sys.exit("Geometry.check_mult(): " +
@@ -130,7 +134,7 @@ class Geometry(object):
         """
         Analyse the geometry.
 
-        The geometry could be a string (filename) or a list (of lists)
+        The geometry could be a string (file name) or a list (of lists)
         Also, geometry could represent a raw xyz geometry or a Z-matrix.
         """
         xyz_match = '\s*\w+\s+[-0-9]+\.\d+\s+[-0-9]+\.\d+\s+[-0-9]+\.\d+\s*'
@@ -343,6 +347,13 @@ class Geometry(object):
     def nAtoms(self):
         """Return the number of atoms."""
         return len(self.atoms)
+
+    def nElectrons(self):
+        '''Return the electron count of a molecule.'''
+        electron_count = -1 * self.charge
+        for atom in self.atoms:
+            electron_count += atom.number_of_electrons
+        return electron_count
 
     def distance(self, i, j):
         """Return the distance between two atoms."""

@@ -8,7 +8,7 @@ import subprocess
 
 
 def query_process(command):
-    """Retrieve an output of a unix command."""
+    """Retrieve an output of a Unix command."""
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
     if err:
@@ -18,7 +18,7 @@ def query_process(command):
 
 def run_process(command, silent=False):
     """
-    Run a unix system command.
+    Run a Unix system command.
 
     This is a os.system substitute, to better understand eventual errors
     """

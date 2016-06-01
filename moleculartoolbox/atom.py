@@ -34,7 +34,7 @@ class Atom(object):
             self.element = symbol
             self.type = "ECP"
         else:  # Normal Atom
-            self.pt_entry = PT.element(self.element)
+            self.pt_entry = PT.element(symbol)
             self.type = "Real"
             self.element = self.pt_entry.symbol
             self.mass = self.pt_entry.mass

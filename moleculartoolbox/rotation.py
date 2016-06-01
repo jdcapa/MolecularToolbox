@@ -70,7 +70,7 @@ class Rotation(object):
             eig2 = 3.0 * q - eig1 - eig3  # since trace(A) = eig1 + eig2 + eig3
         # We want it in reversed order though
         eig = np.array([eig3, eig2, eig1], dtype=FLOAT)
-        print (matA - eig1 * matI) * (matA - eig2 * matI)
+        # print (matA - eig1 * matI) * (matA - eig2 * matI)
         return eig
 
     def moment_of_inertia_tensor(self):
@@ -149,8 +149,8 @@ class Rotation(object):
         if self.check_if_moI_diagonal(moI):
             I_xx, I_yy, I_zz = moI[0, 0], moI[1, 1], moI[2, 2]
         else:
-            moI = self.diagonalise_3x3_symmetric(moI)[0]
-            I_xx, I_yy, I_zz = moI[0, 0], moI[1, 1], moI[2, 2]
+            moI = self.diagonalise_3x3_symmetric(moI)
+            I_xx, I_yy, I_zz = moI[0], moI[1], moI[2]
         if np.isclose(I_xx, I_yy, rtol=tol):
             if np.isclose(0.0, I_zz, rtol=tol):
                 self.is_linear = True
