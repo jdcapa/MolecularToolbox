@@ -23,7 +23,7 @@ def print_complex(np_complex, scaling=1.0, precision=6):
         return (freq_f + " ").format(np_complex.real * scaling)
 
 
-def print_harmonics(harmonic, scaling=1.0):
+def print_harmonics(harmonic, scaling=1.0,):
     """Return an output string containing harmonic frequencies in 1/cm."""
     output_string = "Harmonic vibrational properties\n"
     output_string += "  i   v [1/cm]"
@@ -49,6 +49,22 @@ def print_harmonics(harmonic, scaling=1.0):
             output_string += tmp_str.format(i + 1,
                                             print_complex(f, scaling, 4))
         output_string += "-" * 17 + "\n"
+    return output_string
+
+
+def csv_harmonics(harmonic, scaling=1.0,):
+    """Return a comma-separated-value string of the harmonic transitions."""
+    output_string = ""
+    if not np.all(harmonic.dipole_derivatives):
+        sys.exit("Printfunctons.csv_harmonics():" +
+                 "Dipole derivatives are required to produce a 2D csv.")
+    nTransRot = harmonic.geometry.nTransRot()
+    frequencies = harmonic.freq_inv_cm[nTransRot:].real
+    intensities = harmonic.harmonic_intensities()[nTransRot:]
+    csv_str = "{:> 9.3f}, {:> 10.4f}\n"
+    for i in range(harmonic.geometry.nVib()):
+        output_string += csv_str.format(frequencies[i] * scaling,
+                                        intensities[i])
     return output_string
 
 
