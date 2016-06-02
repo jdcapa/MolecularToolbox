@@ -182,7 +182,8 @@ def print_force_constants(fc_mat, geometry,
     return output_string
 
 
-def print_cartesian_diplacements(harmonic, unit="bohr", precision=9):
+def print_cartesian_diplacements(harmonic, unit="bohr",
+                                 precision=9, scaling=1.0):
     """
     Return a string of back transformed normal coordinates.
 
@@ -192,16 +193,23 @@ def print_cartesian_diplacements(harmonic, unit="bohr", precision=9):
     """
     output_string = ""
     vec_str = " {{:> {},.{}f}}".format(5 + precision, precision)
-    freq_str = "{}\nMode {}: w = {} cm^-1:\n"
+    freq_str = "{}\nv{} = {} 1/cm\n"
+    inten_str = "{}\nv_{} = {} 1/cm, I_{} = {:,.3f} km/mol\n"
 
     nAtoms = harmonic.geometry.nAtoms
     nTransRot = harmonic.geometry.nTransRot()
     harm_inv_cm = harmonic.freq_inv_cm[nTransRot:]
+    if np.all(harmonic.dipole_derivatives):
+        intensities = harmonic.harmonic_intensities()[nTransRot:]
     cart_disps = harmonic.cartesian_displacements(1.0, unit)[0]
 
     for i, disp in enumerate(cart_disps):
-        freq = print_complex(harm_inv_cm[i], precision)
-        output_string += freq_str.format(nAtoms, i + 1, freq)
+        freq = print_complex(harm_inv_cm[i], scaling, 2)
+        if np.all(harmonic.dipole_derivatives):
+            output_string += inten_str.format(nAtoms, i + 1, freq,
+                                              i + 1, intensities[i])
+        else:
+            output_string += freq_str.format(nAtoms, i + 1, freq)
         for a, atom in enumerate(harmonic.geometry.atoms):
             v = np.zeros((3,))
             for j in range(3):
