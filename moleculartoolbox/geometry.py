@@ -277,6 +277,22 @@ class Geometry(object):
                 new_atoms.append(atom)
         return new_atoms
 
+    def isotopic_substitution(self, substitutions):
+        """
+        Substitute certain elements with a certain isotope.
+
+        The substitutions dictionary contains mappings, e.g. 'C': '13C'
+         which causes all the masses of C to be changed to that of 13C
+        """
+        new_atoms = []
+        for atom in self.atoms:
+            if atom.element in substitutions:
+                new_atoms.append(Atom(substitutions[atom.element],
+                                      atom.coordinates))
+            else:
+                new_atoms.append(atom)
+        return new_atoms
+
     def mass_array(self):
         """Return a list of masses ordered according to the geometry."""
         return np.array([atom.mass for atom in self.atoms], dtype=FLOAT)

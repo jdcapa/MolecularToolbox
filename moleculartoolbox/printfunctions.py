@@ -194,10 +194,10 @@ def print_cartesian_diplacements(harmonic, unit="bohr", precision=9):
     vec_str = " {{:> {},.{}f}}".format(5 + precision, precision)
     freq_str = "{}\nMode {}: w = {} cm^-1:\n"
 
-    nAtoms = len(harmonic.geometry.atoms)
+    nAtoms = harmonic.geometry.nAtoms
     nTransRot = harmonic.geometry.nTransRot()
-    harm_inv_cm = harmonic.harm_freq[nTransRot:]
-    cart_disps = harmonic.cartesian_displacements(1.0, unit)
+    harm_inv_cm = harmonic.freq_inv_cm[nTransRot:]
+    cart_disps = harmonic.cartesian_displacements(1.0, unit)[0]
 
     for i, disp in enumerate(cart_disps):
         freq = print_complex(harm_inv_cm[i], precision)
