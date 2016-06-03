@@ -1,16 +1,14 @@
 # -*- coding: UTF-8 -*-
 """This module contains molecular geometry specific functions."""
-from __future__ import print_function
-from __future__ import division
 import os
 import re
 import sys
 import numpy as np
-from atom import Atom
-from rotation import Rotation
 from chemphysconst import Constants
 from numpy import linalg
 from operator import itemgetter
+from .atom import Atom
+from .rotation import Rotation
 
 FLOAT = np.float128
 CONST = Constants()
@@ -425,7 +423,7 @@ class Geometry(object):
         return coordination_number
 
     def is_bound(self, i, j, tollerance_factor=1.1):
-        u"""
+        """
         Return > 0 if i and j are bound.
 
         Atom numbers i and j are the numbers in positions in the self.atom

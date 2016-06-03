@@ -1,7 +1,5 @@
 # -*- coding: UTF-8 -*-
 """This module contains all the atom specific functions."""
-from __future__ import print_function
-from __future__ import division
 import sys
 import re
 import numpy as np
@@ -95,7 +93,7 @@ class Atom(object):
             return True
 
     def covalent_radii(self):
-        u"""
+        """
         Return Pyykkö's covalent radii as a list.
 
         The list can contain one entry for elements that exhibit only single

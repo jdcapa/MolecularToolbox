@@ -1,7 +1,5 @@
 # -*- coding: UTF-8 -*-
 """This module contains molecular geometry specific functions."""
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 from chemphysconst import Constants
 from numpy import linalg

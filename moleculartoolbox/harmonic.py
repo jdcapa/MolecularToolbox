@@ -1,12 +1,10 @@
 # -*- coding: UTF-8 -*-
 """This module contains functions related to the harmonic approximation."""
-from __future__ import print_function
-from __future__ import division
 import sys
 import numpy as np
 from chemphysconst import Constants
 from numpy import linalg
-import printfunctions as PF
+from . import printfunctions as PF
 
 FLOAT = np.float128
 CONST = Constants()

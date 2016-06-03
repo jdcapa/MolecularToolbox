@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 """This module contains a collection of printing functions for this package."""
-from __future__ import print_function
-from __future__ import division
+
+
 import numpy as np
 import sys
 
@@ -268,7 +268,7 @@ def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):
     output_string = "\nHarmonic VPT2 derivative matrix:\n\n"
     nVib = harmonic.geometry.nVib()
     header = (" " * precision + "v_{:<3,d}") * nVib
-    output_string += " " * 5 + header.format(*range(1, nVib + 1)) + '\n'
+    output_string += " " * 5 + header.format(*list(range(1, nVib + 1))) + '\n'
     for i in range(nVib):
         output_string += "w_{:<3,d}".format(i + 1)
         for j in range(nVib):

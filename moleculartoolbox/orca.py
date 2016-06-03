@@ -1,14 +1,12 @@
 # -*- coding: UTF-8 -*-
 """These classes deal with the Orca input and output structure."""
-from __future__ import print_function
-from __future__ import division
 import os
 import re
 import sys
 import numpy as np
 from numpy import linalg
-from geometry import Geometry
-import systemtools as ST
+from .geometry import Geometry
+from . import systemtools as ST
 
 TAB = " " * 4
 FLOAT = np.float128

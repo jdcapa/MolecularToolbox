@@ -1,7 +1,5 @@
 # -*- coding: UTF-8 -*-
 """This is a collection of system routines for a Linux machine (Python 2.7)."""
-from __future__ import print_function
-from __future__ import division
 import sys
 import os
 import subprocess
@@ -29,7 +27,7 @@ def run_process(command, silent=False):
         else:
             if not silent:
                 errorprint("\t...done.")
-    except OSError, e:
+    except OSError as e:
         errorprint("Execution failed:", e)
 
 
@@ -93,7 +91,7 @@ def list2file(output_list, output_file_path):
         try:
             print("Creating {0}".format(dirname))
             os.makedirs(dirname)
-        except Exception, e:
+        except Exception as e:
             raise e
     with open(output_file_path, 'w') as output_file:
         output_file.write("\n".join(output_list))
