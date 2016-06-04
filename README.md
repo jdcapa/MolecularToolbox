@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ChemPhysConst
 
 
@@ -190,3 +191,7 @@ All data for the physical constants is obtained from the
  [complete listing](http://physics.nist.gov/cuu/Constants/Table/allascii.txt) of
  the **CODATA internationally recommended fundamental physical constants 2014**
  curated by [NIST](http://physics.nist.gov/cuu/Constants/index.html).
+=======
+# MolecularToolbox
+A collection of Python modules allowing for investigation and modification of molecules via the use of various quantum chemical program suits.
+>>>>>>> f5dda5d2e32525746980bfa293ed4a395a1cedf0
