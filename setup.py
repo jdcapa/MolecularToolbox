@@ -19,32 +19,16 @@ except IOError:
     long_description = ''
 
 setup(
-<<<<<<< HEAD
-    name='chemphysconst',
-=======
     name='moleculartoolbox',
->>>>>>> f5dda5d2e32525746980bfa293ed4a395a1cedf0
-
-    # Versions should comply with PEP440.  For a discussion on single-sourcing
-    # the version across setup.py and the project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
-<<<<<<< HEAD
-    version='1.3',
-
-    description=('Lightweight python library allowing access to physical' +
-                 'constants, periodic table data and mathematical' +
-                  'conventions. '),
-=======
     version='0.2',
 
     description=('A collection of Python modules allowing for investigation ' +
                  'and modification of molecules via the use of various ' +
                   'quantum chemical program suits. '),
->>>>>>> f5dda5d2e32525746980bfa293ed4a395a1cedf0
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/jdcapa/ChemPhysConst',
+    url='https://github.com/jdcapa/MolecularToolbox',
 
     # Author details
     author='JD Capa',
@@ -112,26 +96,14 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-<<<<<<< HEAD
-    package_data={
-        'chemphysconst': ['data/*.hdf5'],
-    },
-=======
     package_data={},
->>>>>>> f5dda5d2e32525746980bfa293ed4a395a1cedf0
-
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-<<<<<<< HEAD
     data_files=[
         # ('my_data', ['data/data_file'])
     ],
-=======
-    data_files=[],
->>>>>>> f5dda5d2e32525746980bfa293ed4a395a1cedf0
-
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
