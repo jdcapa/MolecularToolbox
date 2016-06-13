@@ -474,7 +474,7 @@ class Geometry(object):
         for atom in self.atoms:
             if abridged_flag:
                 if not (atom.type == "Dummy" or atom.type == "ECP"):
-                    list_of_atoms.append(atom.symbol)
+                    list_of_atoms.append(atom.element)
             else:
-                list_of_atoms.append(atom.symbol)
+                list_of_atoms.append(atom.element)
         return list_of_atoms
