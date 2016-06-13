@@ -98,13 +98,13 @@ def print_VibRot_constants(self, alpha, geometry, precision=8):
     return output_string
 
 
-def print_rigid_rotational_constants(harmonic, model='rigid'):
+def print_rigid_rotational_constants(rotation, model='rigid'):
     """Print rotational constants in cm^-1 and MHz."""
     output_string = "{} rotational constants (".format(model.title())
     if model == 'rigid':
-        abc_e_M = harmonic.rigid_rotational_constants("MHz")
-        abc_e_c = harmonic.rigid_rotational_constants("1/cm")
-        r_type = harmonic.geometry.rot_prop.rotational_symmetry()[1]
+        abc_e_M = rotation.rigid_rotational_constants("MHz")
+        abc_e_c = rotation.rigid_rotational_constants("1/cm")
+        r_type = rotation.geometry.rot_prop.rotational_symmetry()[1]
         output_string += "{} molecule)\n".format(r_type.title())
         output_string += '    {:^12} {:^12}\n'.format('1/cm', 'MHz')
         for i, l in enumerate(['A', 'B', 'C']):

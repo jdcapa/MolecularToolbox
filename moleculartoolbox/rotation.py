@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
 """This module contains molecular geometry specific functions."""
+import sys
 import numpy as np
 from chemphysconst import Constants
 from numpy import linalg
+
 
 FLOAT = np.float128
 CONST = Constants()
@@ -162,3 +164,43 @@ class Rotation(object):
         else:
             return np.array(sorted([I_xx, I_yy, I_zz],
                                    reverse=True)), "Asymmetric top"
+
+    def rigid_rotational_constants(self, unit="MHz", sort=True):
+        """
+        Return the rotational constants.
+
+        This is done according to the rigid rotor approximation.
+        The returned object is a numpy array.
+        If sort == True, it returns [A_e, B_e, C_e] otherwise it just returns
+         the unsorted array.
+        Possible units:
+            MHz
+            GHz
+            1/cm, cm**-1 or cm^-1
+        """
+        # Initialise constants
+        h = CONST.planck_constant("J*s")
+        u_to_kg = CONST.atomic_mass_constant()  # 1.66053904e-27 kg
+        c = CONST.speed_of_light()  # m/s
+
+        # Obtain the original moment of inertia in u*Angstrom^2
+        moIs = np.diag(self.moment_of_inertia_tensor())
+        if sort:
+            moIs = self.rotational_symmetry()[0]
+
+        # Generate rotational constants from the moments of inertia
+        abc_e_in_Hz = np.zeros((3,), dtype=FLOAT)
+        for i, moI in enumerate(moIs):
+            if moI > 0.0:
+                abc_e_in_Hz[i] = h / (8.0e-20 * np.pi**2 * u_to_kg * moI)
+        # Unit conversion
+        if unit in ("MHz", "GHz"):
+            if unit == "MHz":
+                return abc_e_in_Hz / 1.0e6
+            else:
+                return abc_e_in_Hz / 1.0e9
+        elif unit in ("1/cm", "cm**-1", "cm^-1"):
+            return abc_e_in_Hz / (c * 100.0)
+        else:
+            sys.exit("Rotation.rigid_rotational_constants(): "
+                     "Unknown unit passed to function")

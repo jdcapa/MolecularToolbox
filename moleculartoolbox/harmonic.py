@@ -66,48 +66,10 @@ class Harmonic(object):
             self.dipole_derivatives = None
 
         self.diag_Hess, self.mat_L = self.diagonalise_Hessian()
-        self.rot_const_inv_cm = self.rigid_rotational_constants("1/cm", False)
+        self.rotation = self.geometry.rot_prop
+        self.rot_const_inv_cm = self.rotation.rigid_rotational_constants(
+            "1/cm", False)
         self.freq_inv_cm = self.harmonic_frequencies(self.diag_Hess, "1/cm")
-
-    def rigid_rotational_constants(self, unit="MHz", sort=True):
-        """
-        Return the rotational constants.
-
-        This is done according to the rigid rotor approximation.
-        The returned object is a numpy array.
-        If sort == True, it returns [A_e, B_e, C_e] otherwise it just returns
-         the unsorted array.
-        Possible units:
-            MHz
-            GHz
-            1/cm, cm**-1 or cm^-1
-        """
-        # Initialise constants
-        h = CONST.planck_constant("J*s")
-        u_to_kg = CONST.atomic_mass_constant()  # 1.66053904e-27 kg
-        c = CONST.speed_of_light()  # m/s
-
-        # Obtain the original moment of inertia in u*Angstrom^2
-        moIs = np.diag(self.geometry.rot_prop.moment_of_inertia_tensor())
-        if sort:
-            moIs = self.geometry.rot_prop.rotational_symmetry()[0]
-
-        # Generate rotational constants from the moments of inertia
-        abc_e_in_Hz = np.zeros((3,), dtype=FLOAT)
-        for i, moI in enumerate(moIs):
-            if moI > 0.0:
-                abc_e_in_Hz[i] = h / (8.0e-20 * np.pi**2 * u_to_kg * moI)
-        # Unit conversion
-        if unit in ("MHz", "GHz"):
-            if unit == "MHz":
-                return abc_e_in_Hz / 1.0e6
-            else:
-                return abc_e_in_Hz / 1.0e9
-        elif unit in ("1/cm", "cm**-1", "cm^-1"):
-            return abc_e_in_Hz / (c * 100.0)
-        else:
-            sys.exit("Harmonic.rigid_rotational_constants(): "
-                     "Unknown unit passed to function")
 
     def norm_of_grad(self):
         """Return the norm of the gradient."""
