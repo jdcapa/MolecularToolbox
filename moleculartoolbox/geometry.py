@@ -452,3 +452,29 @@ class Geometry(object):
             print(note)
 
         return 0
+
+    def sum_formula(self):
+        """Return a sum formula for a given Geometry."""
+        from collections import Counter
+        sum_formula = ""
+
+        atoms_dict = Counter(self.list_of_atoms())
+        atoms_list = atoms_dict.keys()
+        atoms_list.sort()
+        atoms_list.sort(key=len)
+        for atoms in atoms_list:
+            sum_formula += atoms
+            if atoms_dict[atoms] > 1:
+                sum_formula += str(atoms_dict[atoms])
+        return sum_formula
+
+    def list_of_atoms(self, abridged_flag=True):
+        """Return a list of all atoms in the geometry."""
+        list_of_atoms = []
+        for atom in self.atoms:
+            if abridged_flag:
+                if not (atom.type == "Dummy" or atom.type == "ECP"):
+                    list_of_atoms.append(atom.symbol)
+            else:
+                list_of_atoms.append(atom.symbol)
+        return list_of_atoms
