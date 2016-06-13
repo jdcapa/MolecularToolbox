@@ -459,7 +459,7 @@ class Geometry(object):
         sum_formula = ""
 
         atoms_dict = Counter(self.list_of_atoms())
-        atoms_list = atoms_dict.keys()
+        atoms_list = list(atoms_dict.keys())
         atoms_list.sort()
         atoms_list.sort(key=len)
         for atoms in atoms_list:
