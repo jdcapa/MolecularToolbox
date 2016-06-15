@@ -279,3 +279,7 @@ def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):
                 output_string += value_str.format(value)
         output_string += "\n"
     return output_string
+
+def print_optimisation_sumary(energies):
+    """Print all energies in  nice column."""
+    pass

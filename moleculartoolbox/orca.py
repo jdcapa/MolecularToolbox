@@ -5,6 +5,7 @@ import re
 import sys
 import numpy as np
 from numpy import linalg
+from collections import OrderedDict
 from .geometry import Geometry
 from . import systemtools as ST
 
@@ -113,7 +114,7 @@ class OrcaOutput(object):
                     "basis": self.get_Basis(),
                     "charge": self.get_Charge(),
                     "mult": self.get_Multiplicity(),
-                    "ref": self.get_Referce(),
+                    "ref": self.get_Reference(),
                     "scfconv": self.get_SCF_Details()[1],
                     "geoconv": self.get_GeoOptDetails()[0],
                     }
@@ -211,7 +212,7 @@ class OrcaOutput(object):
                 if "Your calculation utilizes the basis:" in line:
                     return line.strip().split(":")[-1].strip()
 
-    def get_Referce(self):
+    def get_Reference(self):
         """Obtain the reference determinant type."""
         re_HF = re.compile("Hartree-Fock type\s+HFTyp\s+[.]+\s*(\w+)")
         with open(self.OUT_FILE) as out_file:
@@ -302,6 +303,60 @@ class OrcaOutput(object):
         else:
             re_final = re.compile("FINAL SINGLE POINT ENERGY\s+([-\d.]+)")
             return np.array([FLOAT(e) for e in re_final.findall(self.OUT)])
+
+    def energies(self):
+        """
+        Read the final energies as well as the energy contributions.
+
+        Return an array of energy contributions (all units in Eh).
+        If the array has more than one column, the first one is the
+         SCF and the following ones are post-HF contributions
+         depending on the method used;
+         MP2:       [SCF, MP2],
+         CCSD:      [SCF, CCSD],
+         CCSD(T):   [SCF, CCSD, (T)],
+         where the sum of all components equals the total energy.
+        """
+        method = self.get_Method()
+        energies = OrderedDict()
+        if method == "MP2":
+            # SCF, MP2
+            pass
+        elif "CCSD" in method:
+            # SCF, CCSD
+            pass
+            if method == "CCSD(T)":
+                # pT
+                pass
+        else:
+            # Final
+            pass
+        return energies
+
+    def final_energies(self):
+        """Return a list of all final energies."""
+        re_final = re.compile("FINAL SINGLE POINT ENERGY\s+([-\d.]+)")
+        return np.array([FLOAT(e) for e in re_final.findall(self.OUT)])
+
+    def scf_energies(self):
+        """Return a list of all SCF energies."""
+        re_scf = re.compile('Total Energy\s+:\s+([-\d.]+)\s+Eh\s+[-\d.]+\s+eV')
+        return np.array([FLOAT(e) for e in re_scf.findall(self.OUT)])
+
+    def mp2_energies(self):
+        """Return a list of all MP2 correlation energies."""
+        re_mp2 = re.compile('MP2 CORRELATION ENERGY\s+:\s+([-\d.]+) Eh')
+        return np.array([FLOAT(e) for e in re_mp2.findall(self.OUT)])
+
+    def ccsd_energies(self):
+        """Return a list of all CCSD correlation energies."""
+        re_ccsd = re.compile('E\(CORR\)\s+[.]+\s+([-\d.]+)')
+        return np.array([FLOAT(e) for e in re_ccsd.findall(self.OUT)])
+
+    def pT_energies(self):
+        """Return a list of all CCSD(T) correlation energies."""
+        re_pT = re.compile('Triples Correction \(T\)\s+[.]+\s+([-\d.]+)')
+        return np.array([FLOAT(e) for e in re_pT.findall(self.OUT)])
 
     def get_xyz_geometries(self):
         """
