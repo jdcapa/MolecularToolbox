@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """This module contains a collection of printing functions for this package."""
 
@@ -280,6 +281,52 @@ def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):
         output_string += "\n"
     return output_string
 
-def print_optimisation_sumary(energies):
+
+def print_optimisation_sumary(energies, shorten=False, precision=9):
     """Print all energies in  nice column."""
-    pass
+
+    e_str = "{{:.{}f}}".format(precision)
+    mapping = {"E_SCF": ["E[SCF]/Eh", e_str],
+               "E_MP2": ["E[MP2]/Eh", e_str],
+               "E_CCSD": ["E[CCSD]/Eh", e_str],
+               "E_(T)": ["E[(T)]/Eh", e_str],
+               "total": ["E[tot]/Eh", e_str],
+               "log_diff": ["–lg|ΔE|", "{:.2f}"],
+               "grad_norm": ["|Grad|/a.u.", "{:.4e}"]}
+    # Table
+    last_iter = max(energies)
+    keys = list(energies[0].keys())
+    nkeys = len(keys)
+    iterations = list(range(last_iter + 1))
+    if (shorten and last_iter > 6):
+        iterations = [0, 1, 2, last_iter - 3, last_iter - 2, last_iter - 1]
+    table_data = []
+    max_str_size = [len(mapping[k][0]) for k in keys]
+    for i in iterations:
+        iter_data = [str(i + 1)]
+        if (shorten and last_iter > 6 and i == last_iter - 3):
+            table_data.append(["⋮"] + ["⋮    " for k in keys])
+        for j, k in enumerate(keys):
+            if k in energies[i]:
+                formated_str = mapping[k][1].format(energies[i][k])
+                iter_data.append(formated_str)
+                max_str_size[j] = max(max_str_size[j], len(formated_str))
+            else:
+                iter_data.append("–    ")
+        table_data.append(iter_data)
+
+    table_str = "{{:>{}}} " * nkeys
+    table_str = "{:>4} " + table_str.format(*max_str_size) + "\n"
+    table = ""
+    for iteration in table_data:
+        table += table_str.format(*iteration)
+
+    # Header
+    header_names = [mapping[k][0] for k in keys]
+    header_str = "{{:^{}}} " * nkeys
+    header_str = "Iter " + header_str.format(*max_str_size)
+    header = header_str[:-1].format(*header_names) + "\n"
+    hline = "—" * len(header) + "\n"
+    header += hline
+
+    return header + table + hline
