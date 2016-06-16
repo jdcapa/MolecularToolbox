@@ -28,7 +28,10 @@ class OrcaOutput(object):
         # All we need initially are the directory and the file names.
         self.directory = source_directory
         self.filenames(source_directory, basename)
+        self.info = self.get_Calc_info()
         self.geometry = self.get_xyz_geometries()[-1]
+        self.energies = self.get_energies()
+        self.energy = self.total_energy(self.energies, -1)
         if self.has_gradient:
             gradient = self.read_orca_gradient()
             if np.any(gradient):
@@ -77,15 +80,15 @@ class OrcaOutput(object):
                      "Could not find a unique Orca output file.")
         else:
             self.OUT_FILE = os.path.join(source_directory, out_files[0])
-            if (ST.get_memory(0.5, "k") >
-                    os.path.getsize(self.OUT_FILE)):
-                with open(self.OUT_FILE) as out:
-                    self.OUT = out.read()
-            else:
-                sys.exit("OrcaOutput.filenames(): "
-                         "{} is {} GB (too large)".format(
-                             os.path.basename(self.OUT_FILE),
-                             os.path.getsize(self.OUT_FILE)))
+            # if (ST.get_memory(0.5, "k") >
+            #         os.path.getsize(self.OUT_FILE)):
+            with open(self.OUT_FILE) as out:
+                self.OUT = out.read()
+            # else:
+            #     sys.exit("OrcaOutput.filenames(): "
+            #              "{} is {} GB (too large)".format(
+            #                  os.path.basename(self.OUT_FILE),
+            #                  os.path.getsize(self.OUT_FILE)))
         # Gradient file
         gradient_file = os.path.join(source_directory, basename + '.engrad')
         if os.path.exists(gradient_file):
@@ -175,7 +178,7 @@ class OrcaOutput(object):
         re_DFT = re.compile("The ([\d\w]+) functional is recognized")
         re_CCSD = re.compile("Correlation treatment\s+[.]+\s+CCSD")
         re_pT = re.compile("TRIPLES CORRECTION")
-        re_MP2 = re.compile("ORCA MP2 CALCULATION")
+        re_MP2 = re.compile("ORCA  MP2 ")
         re_DISP = re.compile("DFT(D\d)")
         # Flags
         bDFT_flag = False
@@ -270,39 +273,19 @@ class OrcaOutput(object):
                     return geo_DeltaE, geo_RMSG
 
     def get_energies(self):
-        """
-        Read the final energies as well as the energy contributions.
+        """Construct the energy dictionary."""
+        energies = self.energies()
+        energies = self.add_total_energies_and_differences(energies)
+        energies = self.add_gradients(energies)
+        return energies
 
-        Return an array of energy contributions (all units in Eh).
-        If the array has more than one column, the first one is the
-         SCF and the following ones are post-HF contributions
-         depending on the method used;
-         MP2:       [SCF, MP2],
-         CCSD:      [SCF, CCSD],
-         CCSD(T):   [SCF, CCSD, (T)],
-         where the sum of all components equals the total energy.
-        """
-        method = self.get_Method()
-        # re_scf = re.compile('E\(0\)\s+[.]+\s+([-\d.]+)')
-        re_ccsd = re.compile('E\(CORR\)\s+[.]+\s+([-\d.]+)')
-        re_pT = re.compile('Triples Correction \(T\)\s+[.]+\s+([-\d.]+)')
-        re_scf = re.compile('Total Energy\s+:\s+([-\d.]+) Eh')
-        re_MP2 = re.compile('MP2 CORRELATION ENERGY\s+:\s+([-\d.]+) Eh')
-        if method == "MP2":
-            e_scf = np.array([FLOAT(e) for e in re_scf.findall(self.OUT)])
-            e_mp2 = np.array([FLOAT(e) for e in re_MP2.findall(self.OUT)])
-            return e_scf, e_mp2
-        elif "CCSD" in method:
-            e_scf = np.array([FLOAT(e) for e in re_scf.findall(self.OUT)])
-            e_ccsd = np.array([FLOAT(e) for e in re_ccsd.findall(self.OUT)])
-            if method == "CCSD(T)":
-                e_PT = np.array([FLOAT(e) for e in re_pT.findall(self.OUT)])
-                return e_scf, e_ccsd, e_PT
-            else:
-                return e_scf, e_ccsd
-        else:
-            re_final = re.compile("FINAL SINGLE POINT ENERGY\s+([-\d.]+)")
-            return np.array([FLOAT(e) for e in re_final.findall(self.OUT)])
+    def total_energy(self, energies, i):
+        """Return the total energy of step i in a trajectory."""
+        if i < 0:
+            i = len(energies) + i
+        if i not in energies:
+            sys.exit("OrcaOutput.total_energy(): No trj step {}".format(i))
+        return np.sum([v for k, v in energies[i].items() if "E_" in k])
 
     def energies(self):
         """
@@ -312,25 +295,61 @@ class OrcaOutput(object):
         If the array has more than one column, the first one is the
          SCF and the following ones are post-HF contributions
          depending on the method used;
+         SCF:       [SCF],
+         DFT:       [SCF],
          MP2:       [SCF, MP2],
          CCSD:      [SCF, CCSD],
          CCSD(T):   [SCF, CCSD, (T)],
          where the sum of all components equals the total energy.
         """
-        method = self.get_Method()
-        energies = OrderedDict()
-        if method == "MP2":
-            # SCF, MP2
-            pass
-        elif "CCSD" in method:
-            # SCF, CCSD
-            pass
-            if method == "CCSD(T)":
-                # pT
-                pass
+        method = self.info["method"]
+        if method in ["MP2", "CCSD", "CCSD(T)"]:
+            e_scf = self.scf_energies()
         else:
-            # Final
-            pass
+            e_scf = self.final_energies()
+
+        energies = OrderedDict()
+        for i in range(len(e_scf)):
+            energies[i] = OrderedDict()
+            energies[i]["E_SCF"] = e_scf[i]
+
+        if method == "MP2":
+            e_mp2 = self.mp2_energies()
+            for i in range(len(e_mp2)):
+                energies[i]["E_MP2"] = e_mp2[i]
+        elif "CCSD" in method:
+            e_ccsd = self.ccsd_energies()
+            for i in range(len(e_ccsd)):
+                energies[i]["E_CCSD"] = e_ccsd[i]
+            if method == "CCSD(T)":
+                e_pT = self.pT_energies()
+                for i in range(len(e_pT)):
+                    energies[i]["E_(T)"] = e_pT[i]
+
+        return energies
+
+    def add_total_energies_and_differences(self, energies):
+        """Add the total energies (and differences) to the energy list."""
+        if len(energies[0]) > 1:
+            iterations = [k for k in energies.keys() if "E_SCF" in energies[k]]
+            for i in iterations:
+                energies[i]["total"] = self.total_energy(energies, i)
+                j = i - 1
+                if j in iterations:
+                    if "total" in energies[j]:
+                        adiff = np.abs(energies[i]["total"] -
+                                       energies[j]["total"])
+                        if adiff > 0:
+                            energies[i]["log_diff"] = -np.log(adiff)
+                elif j == -1:
+                    energies[i]["log_diff"] = 0
+        return energies
+
+    def add_gradients(self, energies):
+        """Adds the gradient norms the the energy list."""
+        gradients = self.grad_norms()
+        for i in range(len(gradients)):
+            energies[i]["grad_norm"] = gradients[i]
         return energies
 
     def final_energies(self):
@@ -357,6 +376,13 @@ class OrcaOutput(object):
         """Return a list of all CCSD(T) correlation energies."""
         re_pT = re.compile('Triples Correction \(T\)\s+[.]+\s+([-\d.]+)')
         return np.array([FLOAT(e) for e in re_pT.findall(self.OUT)])
+
+    def grad_norms(self):
+        """Return a list of all gradient norms."""
+        re_grd = re.compile('Norm of the cartesian gradient\s+[.]+\s+([\d.]+)')
+        if self.info["method"] == "MP2":
+            re_grd = re.compile('NORM OF THE MP2 GRADIENT:\s+([\d.]+)')
+        return np.array([FLOAT(e) for e in re_grd.findall(self.OUT)])
 
     def get_xyz_geometries(self):
         """
