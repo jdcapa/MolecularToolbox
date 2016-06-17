@@ -17,6 +17,7 @@ class Atom(object):
     def __init__(self, symbol, coordinates=[0.0, 0.0, 0.0], **kwargs):
         """Initiat the atom with at least a symble and some coordinates."""
         super(Atom, self).__init__()
+
         self.setter(symbol, kwargs)
         self.analyse_coordinates(coordinates)
 
@@ -42,11 +43,16 @@ class Atom(object):
             self.setter("H", kwargs)
             self.mass = self.pt_entry.isotope(2).atomic_mass
         else:  # Normal Atom
+            import time
+            t0 = time.time()
             self.pt_entry = PT.element(symbol)
+            t1 = time.time()
             self.type = "Real"
             self.element = self.pt_entry.symbol
             self.mass = self.pt_entry.mass
             self.number_of_electrons = self.pt_entry.number
+            t2 = time.time()
+            self.timing = np.array([t1 - t0, t2 - t1])
         # Keyword analysis
         floats = [float, np.float64, np.float128]
         if ("mass" in kwargs and type(kwargs["mass"]) in floats):

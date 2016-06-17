@@ -7,7 +7,7 @@ import sys
 import numpy as np
 from numpy import linalg
 from .geometry import Geometry
-# from . import systemtools as ST
+from . import systemtools as ST
 
 TAB = " " * 4
 FLOAT = np.float128
@@ -29,7 +29,8 @@ class OrcaOutput(object):
         self.directory = source_directory
         self.filenames(source_directory, basename)
         self.info = self.get_Calc_info()
-        self.geometry = self.get_xyz_geometries()[-1]
+        self.geometries = self.get_xyz_geometries()
+        self.geometry = self.geometries[-1]
         if self.has_gradient:
             gradient = self.read_orca_gradient()
             if np.any(gradient):
@@ -208,6 +209,7 @@ class OrcaOutput(object):
 
         For atom specific definitions we should have a separate routine
         """
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if "Your calculation utilizes the basis:" in line:
@@ -216,6 +218,7 @@ class OrcaOutput(object):
     def get_Reference(self):
         """Obtain the reference determinant type."""
         re_HF = re.compile("Hartree-Fock type\s+HFTyp\s+[.]+\s*(\w+)")
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if re_HF.search(line):
@@ -224,6 +227,7 @@ class OrcaOutput(object):
     def get_Charge(self):
         """Read the charge."""
         re_Charge = re.compile("Total Charge\s+Charge\s+[.]+\s*([-+\d]+)")
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if re_Charge.search(line):
@@ -232,6 +236,7 @@ class OrcaOutput(object):
     def get_Multiplicity(self):
         """Read the multiplicity."""
         re_Mult = re.compile("Multiplicity\s+Mult\s+[.]+\s*(\d+)")
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if re_Mult.search(line):
@@ -243,6 +248,7 @@ class OrcaOutput(object):
         re_SCF_DeltaE = re.compile("TolE\s+[.]+\s*([\d.e+-]+) Eh")
         scf_Thresh = 0.0
         scf_DeltaE = 0.0
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if re_SCF_Thresh.search(line):
@@ -261,6 +267,7 @@ class OrcaOutput(object):
         re_GEO_RMSG = re.compile("TolRMSG\s+[.]+\s*([\d.e+-]+) Eh/bohr")
         geo_DeltaE = 0.0
         geo_RMSG = 0.0
+        # Here we can afford to open the file object, since we break early.
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
                 if re_GEO_DeltaE.search(line):
@@ -269,6 +276,15 @@ class OrcaOutput(object):
                     geo_RMSG = FLOAT(re_GEO_RMSG.search(line).group(1))
                 if (geo_DeltaE and geo_RMSG):
                     return geo_DeltaE, geo_RMSG
+
+    def get_numberOfAtoms(self):
+        """Read the number of Atoms from the orca output file."""
+        re_nAtoms = re.compile("Number of atoms\s+[.]+\s+(\d+)")
+        # Here we can afford to open the file object, since we break early.
+        with open(self.OUT_FILE) as out_file:
+            for line in out_file:
+                if re_nAtoms.search(line):
+                    return int(re_nAtoms.search(line).group(1))
 
     def final_energies(self):
         """Return a list of all final energies."""
@@ -310,28 +326,27 @@ class OrcaOutput(object):
          Angstroem and stored in a Geometry object.
         An array of geometries is returned.
         """
+        geometries = []
+        nAtoms = self.get_numberOfAtoms()
         charge = self.get_Charge()
         mult = self.get_Multiplicity()
-        geometries = []
 
-        with open(self.OUT_FILE) as orca_out:
-            line = orca_out.readline()
-            while line:
-                if "CARTESIAN COORDINATES (A.U.)" in line:
-                    line = orca_out.readline()
-                    line = orca_out.readline()
-                    line = orca_out.readline()
-                    geometry = []
-                    while line.strip():
-                        if len(line.split()) < 8:
-                            break
-                        v = line.split()
-                        geometry.append([v[0], v[1], v[4], v[5], v[6], v[7]])
-                        line = orca_out.readline()
-                    geometries.append(Geometry(geometry, charge=charge,
-                                               mult=mult,
-                                               distance_units='Bohr'))
-                line = orca_out.readline()
+        search_str = "CARTESIAN COORDINATES (A.U.)"
+        out = self.OUT.split('\n')
+        lFind = [i + 3 for i, l in enumerate(out) if search_str in l]
+        raw_coords = [out[i: i + nAtoms] for i in lFind]
+
+        for raw_coord in raw_coords:
+            geometry = []
+            for line in raw_coord:
+                if (line.strip() and len(line.split()) == 8):
+                    v = line.split()
+                    geometry.append([v[0], v[1], v[4], v[5], v[6], v[7]])
+            geometries.append(Geometry(geometry,
+                                       charge=charge,
+                                       mult=mult,
+                                       distance_units='Bohr'))
+
         if geometries:
             return geometries
         else:

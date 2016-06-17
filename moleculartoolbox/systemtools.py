@@ -3,6 +3,8 @@
 import sys
 import os
 import subprocess
+from collections import deque
+from itertools import islice
 
 
 def query_process(command):
@@ -64,6 +66,17 @@ def get_memory(modifier=0.8, unit="m"):
     else:  # unit = "b"
         unit_modifier = 1
     return available_ram / unit_modifier
+
+
+def consume(iterator, n):
+    "Advance the iterator n-steps ahead. If n is none, consume entirely."
+    # Use functions that consume iterators at C speed.
+    if n is None:
+        # feed the entire iterator into a zero-length deque
+        deque(iterator, maxlen=0)
+    else:
+        # advance to the empty slice starting at position n
+        next(islice(iterator, n, n), None)
 
 
 def write_string_to_file(string, filename, path=''):
