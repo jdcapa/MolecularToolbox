@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """These classes deal with the Orca input and output structure."""
 import os
@@ -5,9 +6,8 @@ import re
 import sys
 import numpy as np
 from numpy import linalg
-from collections import OrderedDict
 from .geometry import Geometry
-from . import systemtools as ST
+# from . import systemtools as ST
 
 TAB = " " * 4
 FLOAT = np.float128
@@ -30,8 +30,6 @@ class OrcaOutput(object):
         self.filenames(source_directory, basename)
         self.info = self.get_Calc_info()
         self.geometry = self.get_xyz_geometries()[-1]
-        self.energies = self.get_energies()
-        self.energy = self.total_energy(self.energies, -1)
         if self.has_gradient:
             gradient = self.read_orca_gradient()
             if np.any(gradient):
@@ -271,86 +269,6 @@ class OrcaOutput(object):
                     geo_RMSG = FLOAT(re_GEO_RMSG.search(line).group(1))
                 if (geo_DeltaE and geo_RMSG):
                     return geo_DeltaE, geo_RMSG
-
-    def get_energies(self):
-        """Construct the energy dictionary."""
-        energies = self.energies()
-        energies = self.add_total_energies_and_differences(energies)
-        energies = self.add_gradients(energies)
-        return energies
-
-    def total_energy(self, energies, i):
-        """Return the total energy of step i in a trajectory."""
-        if i < 0:
-            i = len(energies) + i
-        if i not in energies:
-            sys.exit("OrcaOutput.total_energy(): No trj step {}".format(i))
-        return np.sum([v for k, v in energies[i].items() if "E_" in k])
-
-    def energies(self):
-        """
-        Read the final energies as well as the energy contributions.
-
-        Return an array of energy contributions (all units in Eh).
-        If the array has more than one column, the first one is the
-         SCF and the following ones are post-HF contributions
-         depending on the method used;
-         SCF:       [SCF],
-         DFT:       [SCF],
-         MP2:       [SCF, MP2],
-         CCSD:      [SCF, CCSD],
-         CCSD(T):   [SCF, CCSD, (T)],
-         where the sum of all components equals the total energy.
-        """
-        method = self.info["method"]
-        if method in ["MP2", "CCSD", "CCSD(T)"]:
-            e_scf = self.scf_energies()
-        else:
-            e_scf = self.final_energies()
-
-        energies = OrderedDict()
-        for i in range(len(e_scf)):
-            energies[i] = OrderedDict()
-            energies[i]["E_SCF"] = e_scf[i]
-
-        if method == "MP2":
-            e_mp2 = self.mp2_energies()
-            for i in range(len(e_mp2)):
-                energies[i]["E_MP2"] = e_mp2[i]
-        elif "CCSD" in method:
-            e_ccsd = self.ccsd_energies()
-            for i in range(len(e_ccsd)):
-                energies[i]["E_CCSD"] = e_ccsd[i]
-            if method == "CCSD(T)":
-                e_pT = self.pT_energies()
-                for i in range(len(e_pT)):
-                    energies[i]["E_(T)"] = e_pT[i]
-
-        return energies
-
-    def add_total_energies_and_differences(self, energies):
-        """Add the total energies (and differences) to the energy list."""
-        if len(energies[0]) > 1:
-            iterations = [k for k in energies.keys() if "E_SCF" in energies[k]]
-            for i in iterations:
-                energies[i]["total"] = self.total_energy(energies, i)
-                j = i - 1
-                if j in iterations:
-                    if "total" in energies[j]:
-                        adiff = np.abs(energies[i]["total"] -
-                                       energies[j]["total"])
-                        if adiff > 0:
-                            energies[i]["log_diff"] = -np.log(adiff)
-                elif j == -1:
-                    energies[i]["log_diff"] = 0
-        return energies
-
-    def add_gradients(self, energies):
-        """Adds the gradient norms the the energy list."""
-        gradients = self.grad_norms()
-        for i in range(len(gradients)):
-            energies[i]["grad_norm"] = gradients[i]
-        return energies
 
     def final_energies(self):
         """Return a list of all final energies."""
