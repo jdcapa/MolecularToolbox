@@ -79,9 +79,9 @@ class Energy(object):
     def add_total_energies_and_differences(self, energies):
         """Add the total energies (and differences) to the energy list."""
         total = []
-        if len(energies[0]) > 1:
-            iterations = [k for k in energies.keys() if "E_SCF" in energies[k]]
-            for i in iterations:
+        iterations = [k for k in energies.keys() if "E_SCF" in energies[k]]
+        for i in iterations:
+            if len(energies[0]) > 1:
                 energies[i]["total"] = self.total_energy(energies, i)
                 total.append(energies[i]["total"])
                 j = i - 1
@@ -93,8 +93,8 @@ class Energy(object):
                             energies[i]["log_diff"] = -np.log(adiff)
                 elif j == -1:
                     energies[i]["log_diff"] = 0
-        else:
-            total.append(energies[0]["E_SCF"])
+            else:
+                total.append(energies[i]["E_SCF"])
         self.total = np.array(total)
         return energies
 
