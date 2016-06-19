@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
 """This module contains all the atom specific functions."""
 import sys
 import re
@@ -43,16 +43,11 @@ class Atom(object):
             self.setter("H", kwargs)
             self.mass = self.pt_entry.isotope(2).atomic_mass
         else:  # Normal Atom
-            import time
-            t0 = time.time()
             self.pt_entry = PT.element(symbol)
-            t1 = time.time()
             self.type = "Real"
             self.element = self.pt_entry.symbol
             self.mass = self.pt_entry.mass
             self.number_of_electrons = self.pt_entry.number
-            t2 = time.time()
-            self.timing = np.array([t1 - t0, t2 - t1])
         # Keyword analysis
         floats = [float, np.float64, np.float128]
         if ("mass" in kwargs and type(kwargs["mass"]) in floats):
