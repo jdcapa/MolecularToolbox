@@ -30,7 +30,7 @@ def print_harmonics(harmonic, scaling=1.0,):
     output_string += "  i   v [1/cm]"
     harm_frequencies = harmonic.freq_inv_cm
     nTransRot = harmonic.geometry.nTransRot()
-    if np.all(harmonic.dipole_derivatives):
+    if np.any(harmonic.dipole_derivatives):
         output_string += " " * 4 + "I [km/mol]\n" + "-" * 28 + "\n"
         tmp_str = '{0:> 4,d} {1} {2:>10,.4f}\n'
         harm_intensities = harmonic.harmonic_intensities()
@@ -56,7 +56,7 @@ def print_harmonics(harmonic, scaling=1.0,):
 def csv_harmonics(harmonic, scaling=1.0,):
     """Return a comma-separated-value string of the harmonic transitions."""
     output_string = ""
-    if not np.all(harmonic.dipole_derivatives):
+    if not np.any(harmonic.dipole_derivatives):
         sys.exit("Printfunctons.csv_harmonics():" +
                  "Dipole derivatives are required to produce a 2D csv.")
     nTransRot = harmonic.geometry.nTransRot()

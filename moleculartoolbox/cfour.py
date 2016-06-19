@@ -38,7 +38,7 @@ class CfourOutput:
         #     if np.any(gradient):
         #         self.gradient = gradient
         if self.has_hessian:
-            self.hessian = self.read_orca_hessian()
+            self.hessian = self.read_hessian()
 
     def filenames(self, source_directory, outfile):
         """
@@ -65,6 +65,12 @@ class CfourOutput:
             self.has_hessian = True
         else:
             self.has_hessian = False
+        if self.has_hessian:
+            dipder_file = os.path.join(source_directory, "DIPDER")
+            if os.path.exists(dipder_file):
+                self.DIPDER_FILE = dipder_file
+            else:
+                self.DIPDER_FILE = ""
 
     def get_BasicInfo(self):
         """Read basic calculational details from the output file."""
@@ -293,7 +299,7 @@ class CfourOutput:
         re_grd = re.compile('Molecular gradient norm\s+([-\d.E]+)')
         return np.array([FLOAT(e) for e in re_grd.findall(self.OUT)])
 
-    def read_cfour_hessian(self, threshold=1e-10):
+    def read_hessian(self, threshold=1e-10):
         """
         Return the cfour Hessian matrix read from the FCM file.
 
@@ -322,3 +328,26 @@ class CfourOutput:
                     a = 0
                     b += 1
         return hessian
+
+    def read_dipole_derivative(self, cutoff=1e-12):
+        """
+        Return the Cfour dipole derivative vector (3Nx3) matrix.
+
+        The data is found in the DIPDER file.
+        Units: (Eh*bohr)^1/2
+        """
+        threeN = self.geometry.nAtoms * 3
+        dipder = np.zeros((threeN, 3), dtype=FLOAT)
+        re_dd = re.compile(r'[\d.]+' + r'\s+([-\d.]+)' * 3)
+        c = 0
+        if not self.DIPDER_FILE:
+            return None
+        with open(self.DIPDER_FILE) as hess_f:
+            for line in hess_f:
+                if c == threeN:
+                    break
+                if re_dd.search(line):
+                    for i in range(3):
+                        dipder[c, i] = FLOAT(re_dd.search(line).group(i + 1))
+                    c += 1
+        return dipder

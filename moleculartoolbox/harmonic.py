@@ -169,7 +169,7 @@ class Harmonic(object):
 
         This assumes the dipole derivatives comes in units of (Eh*bohr)^1/2.
         """
-        if not np.all(self.dipole_derivatives):
+        if not np.any(self.dipole_derivatives):
             return
         sqrt_masses = np.sqrt(self.geometry.threeN_mass_array())
         u_to_kg = CONST.atomic_mass_constant()

@@ -7,7 +7,7 @@ import sys
 import numpy as np
 from numpy import linalg
 from .geometry import Geometry
-from . import systemtools as ST
+# from . import systemtools as ST
 
 TAB = " " * 4
 FLOAT = np.float128
@@ -36,7 +36,7 @@ class OrcaOutput(object):
             if np.any(gradient):
                 self.gradient = gradient
         if self.has_hessian:
-            self.hessian = self.read_orca_hessian()
+            self.hessian = self.read_hessian()
 
     def filenames(self, source_directory, basename):
         """
@@ -395,7 +395,7 @@ class OrcaOutput(object):
         else:
             return 0.0
 
-    def read_orca_hessian(self, threshold=1e-10):
+    def read_hessian(self, threshold=1e-10):
         """
         Return the Oca Hessian matrix read from hess_file.
 
@@ -429,7 +429,7 @@ class OrcaOutput(object):
                                     hessian[i][j_s[k]] = value
         return hessian
 
-    def read_orca_dipole_derivative(self, cutoff=1e-12):
+    def read_dipole_derivative(self, cutoff=1e-12):
         """
         Return the Orca dipole derivative vector (3Nx3) matrix.
 
