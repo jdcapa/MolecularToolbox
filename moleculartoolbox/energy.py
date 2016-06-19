@@ -7,7 +7,8 @@ from collections import OrderedDict
 
 
 class Energy(object):
-    """docstring for Energy"""
+    """This class handles all energy related functions."""
+
     def __init__(self, job):
         """Initialise the energy object with an Orca/Cfour Output object."""
         super(Energy, self).__init__()
@@ -73,7 +74,6 @@ class Energy(object):
                 self.pT = self.job.pT_energies()
                 for i in range(len(self.pT)):
                     energies[i]["E_(T)"] = self.pT[i]
-
         return energies
 
     def add_total_energies_and_differences(self, energies):
@@ -99,7 +99,7 @@ class Energy(object):
         return energies
 
     def add_gradients(self, energies):
-        """Adds the gradient norms the the energy list."""
+        """Add the gradient norms the the energy list."""
         self.gradients = self.job.grad_norms()
         for i in range(len(self.gradients)):
             energies[i]["grad_norm"] = self.gradients[i]
