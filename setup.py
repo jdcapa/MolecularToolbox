@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
@@ -20,7 +20,7 @@ except IOError:
 
 setup(
     name='moleculartoolbox',
-    version='0.2',
+    version='0.3',
 
     description=('A collection of Python modules allowing for investigation ' +
                  'and modification of molecules via the use of various ' +
