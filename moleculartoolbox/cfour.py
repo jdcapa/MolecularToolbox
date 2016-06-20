@@ -358,7 +358,7 @@ class CfourOutput:
         a, b = 0, 0
         for i in range(threeN):
             for j in range(3):
-                dipder[i, j] = dipder_tmp[a, b]
+                dipder[a, b] = dipder_tmp[i, j]
                 a += 1
             if a == threeN:
                 a = 0
