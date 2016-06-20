@@ -336,7 +336,9 @@ class CfourOutput:
         The data is found in the DIPDER file.
         Units: (Eh*bohr)^1/2
         """
-        threeN = self.geometry.nAtoms * 3
+        nAtoms = self.geometry.nAtoms
+        threeN = nAtoms * 3
+        dipder_tmp = np.zeros((threeN, 3), dtype=FLOAT)
         dipder = np.zeros((threeN, 3), dtype=FLOAT)
         re_dd = re.compile(r'[\d.]+' + r'\s+([-\d.]+)' * 3)
         c = 0
@@ -348,6 +350,14 @@ class CfourOutput:
                     break
                 if re_dd.search(line):
                     for i in range(3):
-                        dipder[c, i] = FLOAT(re_dd.search(line).group(i + 1))
+                        der = FLOAT(re_dd.search(line).group(i + 1))
+                        if der > cutoff:
+                            dipder_tmp[c, i] = der
                     c += 1
+        # Cfour sorts the DipDer in a weird way. We have to re-sort
+        c = 0
+        for i in range(nAtoms):
+            for j in range(3):
+                dipder[c] = dipder_tmp[i + j * nAtoms]
+                c += 1
         return dipder
