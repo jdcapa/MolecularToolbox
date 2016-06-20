@@ -60,8 +60,9 @@ class Harmonic(object):
             if type(dipole_derivatives) == np.ndarray:
                 self.dipole_derivatives = dipole_derivatives
             else:
-                sys.exit("Harmonic.__init__(): "
-                         "Valid dipole derivatives are necessary")
+                print("Harmonic.__init__(): "
+                      "Valid dipole derivatives are missing")
+                self.dipole_derivatives = None
         else:
             self.dipole_derivatives = None
 

@@ -340,7 +340,7 @@ class CfourOutput:
         Units: (Eh*bohr)^1/2
         """
         # I'm giving up. No luck, it's eating too much time.
-        pass
+        return None
         # Here was the attempt:
         nAtoms = self.geometry.nAtoms
         threeN = nAtoms * 3
