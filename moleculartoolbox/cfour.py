@@ -355,9 +355,13 @@ class CfourOutput:
                             dipder_tmp[c, i] = der
                     c += 1
         # Cfour sorts the DipDer in a weird way. We have to re-sort
-        c = 0
-        for i in range(nAtoms):
+        a, b = 0, 0
+        for i in range(threeN):
             for j in range(3):
-                dipder[c] = dipder_tmp[i + j * nAtoms]
-                c += 1
+                dipder[i, j] = dipder_tmp[a, b]
+                a += 1
+            if a == threeN:
+                a = 0
+                b += 1
+        print(dipder)
         return dipder
