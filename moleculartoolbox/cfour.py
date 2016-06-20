@@ -261,7 +261,7 @@ class CfourOutput:
     def scf_energies(self):
         """Return a list of all SCF energies."""
         if self.basic_info["ref"][2] == 'ROHF':
-            re_scf = re.compile("number:\s+[\d.]+\s+\d+\s+([-\d.]+)\s+[-\d.D]+")
+            re_scf = re.compile("umber:\s+[\d.]+\s+\d+\s+([-\d.]+)\s+[-\d.D]+")
         else:
             re_scf = re.compile(r'E\(SCF\)=\s+([-+\d.]+)')
 
@@ -333,9 +333,15 @@ class CfourOutput:
         """
         Return the Cfour dipole derivative vector (3Nx3) matrix.
 
+        THIS IS NOT WORKING: Cfour changes the coordinates midway through,
+         and there is no mapping of this provided anywhere. Idiots!
+
         The data is found in the DIPDER file.
         Units: (Eh*bohr)^1/2
         """
+        # I'm giving up. No luck, it's eating too much time.
+        pass
+        # Here was the attempt:
         nAtoms = self.geometry.nAtoms
         threeN = nAtoms * 3
         dipder_tmp = np.zeros((threeN, 3), dtype=FLOAT)
@@ -351,7 +357,7 @@ class CfourOutput:
                 if re_dd.search(line):
                     for i in range(3):
                         der = FLOAT(re_dd.search(line).group(i + 1))
-                        if der > cutoff:
+                        if np.abs(der) > cutoff:
                             dipder_tmp[c, i] = der
                     c += 1
         # Cfour sorts the DipDer in a weird way. We have to re-sort
@@ -363,5 +369,4 @@ class CfourOutput:
             if a == threeN:
                 a = 0
                 b += 1
-        print(dipder)
         return dipder
