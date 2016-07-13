@@ -20,7 +20,7 @@ class OrcaOutput(object):
         """
         Initiate the class with the source_directory name.
 
-        Everything eles should be detected automatically.
+        Everything else should be detected automatically.
         If multiple jobs are present in that directory, a basename needs to be
          specified.
         """
@@ -312,12 +312,24 @@ class OrcaOutput(object):
 
     def get_numberOfAtoms(self):
         """Read the number of Atoms from the orca output file."""
-        re_nAtoms = re.compile("Number of atoms\s+[.]+\s+(\d+)")
+        # re_nAtoms = re.compile("Number of atoms\s+[.]+\s+(\d+)")
         # Here we can afford to open the file object, since we break early.
+        # with open(self.OUT_FILE) as out_file:
+        #     for line in out_file:
+        #         if re_nAtoms.search(line):
+        #             return int(re_nAtoms.search(line).group(1))
+        nAtoms = -2
+        count_flag = False
         with open(self.OUT_FILE) as out_file:
             for line in out_file:
-                if re_nAtoms.search(line):
-                    return int(re_nAtoms.search(line).group(1))
+                if "CARTESIAN COORDINATES (A.U.)" in line:
+                    count_flag = True
+                    continue
+                if (count_flag and line.strip()):
+                    nAtoms += 1
+                    continue
+                elif (count_flag and not line.strip()):
+                    return nAtoms
 
     def final_energies(self):
         """Return a list of all final energies."""
