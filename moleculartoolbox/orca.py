@@ -16,7 +16,7 @@ FLOAT = np.float128
 class OrcaOutput(object):
     """This class is dealing with the orca 4.0 output structure."""
 
-    def __init__(self, source_directory, basename=None):
+    def __init__(self, source_directory, basename=None, input_only=False):
         """
         Initiate the class with the source_directory name.
 
@@ -27,18 +27,21 @@ class OrcaOutput(object):
         super(OrcaOutput, self).__init__()
         # All we need initially are the directory and the file names.
         self.directory = source_directory
-        self.filenames(source_directory, basename)
-        self.info = self.get_Calc_info()
-        self.geometries = self.get_xyz_geometries()
-        self.geometry = self.geometries[-1]
-        if self.has_gradient:
-            gradient = self.read_orca_gradient()
-            if np.any(gradient):
-                self.gradient = gradient
-        if self.has_hessian:
-            self.hessian = self.read_hessian()
+        self.filenames(source_directory, basename, input_only)
+        if input_only:
+            self.geometry = self.get_xyz_geometry_from_input()
+        else:
+            self.info = self.get_Calc_info()
+            self.geometries = self.get_xyz_geometries()
+            self.geometry = self.geometries[-1]
+            if self.has_gradient:
+                gradient = self.read_orca_gradient()
+                if np.any(gradient):
+                    self.gradient = gradient
+            if self.has_hessian:
+                self.hessian = self.read_hessian()
 
-    def filenames(self, source_directory, basename):
+    def filenames(self, source_directory, basename, input_only):
         """
         Define all the orca files (min: input and output file).
 
@@ -56,9 +59,9 @@ class OrcaOutput(object):
                 if element[-4:] == ".inp":
                     occurances += 1
                     basename = element[:-4]
-                if occurances > 1:
-                    sys.exit("OrcaOutput.filenames(): "
-                             "Orca basename not provided")
+            if occurances != 1:
+                sys.exit("OrcaOutput.filenames(): "
+                         "Orca basename not provided")
         else:
             input_file = os.path.join(source_directory, basename + '.inp')
             if os.path.exists(input_file):
@@ -67,6 +70,9 @@ class OrcaOutput(object):
                 sys.exit("OrcaOutput.filenames(): "
                          "Could not find an Orca input file.")
         self.basename = basename
+        # we want to terminate here if we only have an input file
+        if input_only:
+            return
         # Output file
         out_files = [f for f in os.listdir(source_directory) if '.out' in f]
         out_files_c = out_files[:]
@@ -105,6 +111,33 @@ class OrcaOutput(object):
         else:
             self.HESSIAN_FILE = ""
             self.has_hessian = False
+
+    def get_xyz_geometry_from_input(self):
+        """Obtain the xyz geometry from the Orca input file and return it."""
+        re_xyzHeader = re.compile("xyz\s+([-+\d]+)\s+([\d]+)")
+        re_xyz = re.compile("(\w+)" + "\s+([-.\d]+)" * 3)
+        geometry = []
+        has_xyz = False
+        distance_units = "Angs"
+
+        with open(self.INPUT_FILE) as inp:
+            for line in inp:
+                if re.search("Bohr", line, re.IGNORECASE):
+                    distance_units = "Bohr"
+                    continue
+                if re_xyzHeader.search(line):
+                    has_xyz = True
+                    charge = int(re_xyzHeader.search(line).group(1))
+                    mult = int(re_xyzHeader.search(line).group(2))
+                    continue
+                if has_xyz:
+                    if re_xyz.search(line):
+                        geometry.append(list(re_xyz.search(line).groups()))
+                        continue
+            return Geometry(geometry,
+                            charge=charge,
+                            mult=mult,
+                            distance_units=distance_units)
 
     def get_Calc_info(self):
         """Summarise calculation set-up and return it as a dictionary."""
