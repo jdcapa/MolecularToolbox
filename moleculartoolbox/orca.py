@@ -595,3 +595,139 @@ class OrcaOutput(object):
         else:
             sys.exit("OrcaOutput.get_internal_coordinates(): "
                      "No geometries found")
+
+    def get_orbital_populations(self, threshold=5.0):
+        """
+        Return an MO (occupied) population dictionary.
+
+        treshold: The neccesary contribution of an AO in percent that is
+                  required before it's added to the dictionary.
+
+        This uses the Loewdin reduced orbital population analysis of orca which
+         can be activated by including the following in the input file:
+        %output
+           Print[P_OrbPopMO_L]  1
+        end
+        """
+        columns = 6  # Orca prints 6 columns at a time
+        # MO properties: Number, Energy, Occupation, AO data
+        re_mo_numb = re.compile('\s+(\d+)' * columns)
+        re_mo_ener = re.compile('\s+([-.\d]+)' * columns)
+        re_mo_occu = re.compile('\s+(1.00000|0.00000)' * columns)
+        re_mo_line = re.compile('\s*(\d+)\s+(\w+)\s+([\w\d+-]+)' +
+                                '\s+(\d+\.\d)' * columns)
+
+        mo_dict = {}
+        mo_read_flag = False
+        ene_read_flag = False
+        occ_read_flag = False
+        line_read_flag = False
+        orbital_occupied = True
+        for line in self.OUT.split('\n'):
+            if "LOEWDIN REDUCED ORBITAL POPULATIONS PER MO" in line:
+                mo_read_flag = True
+                continue
+            if not mo_read_flag:
+                continue
+            if mo_read_flag:
+                if re_mo_numb.search(line):
+                    # reading mo number
+                    mos = [int(mo) for mo in line.split()]
+                    ene_read_flag = True
+                    continue
+                if (re_mo_ener.search(line) and not occ_read_flag and
+                        ene_read_flag):
+                    # reading mo energies
+                    ene = [float(e) for e in re_mo_ener.search(line).groups()]
+                    ene_read_flag = False
+                    occ_read_flag = True
+                    continue
+                if (re_mo_occu.search(line) and occ_read_flag):
+                    # reading mo occupations
+                    occ = [float(o) for o in re_mo_occu.search(line).groups()]
+                    occ_read_flag = False
+                    line_read_flag = True
+                    details, per = [], []
+                    continue
+                if (line_read_flag and re_mo_line.search(line)):
+                    # reading mo details and percentages
+                    details.append(re_mo_line.search(line).groups()[:3])
+                    per.append([float(f) for f in
+                                re_mo_line.search(line).groups()[3:]])
+                    continue
+                if (line_read_flag and not line.strip()):
+                    # writing the orbital details to the mo dictionary
+                    for i in range(columns):
+                        mo = mos[i]
+                        if occ[i] == 0.0:
+                            orbital_occupied = False
+                        if (mo not in mo_dict and occ[i] > 0):
+                            mo_dict[mo] = {'MO': mo,
+                                           'energy': ene[i],
+                                           'occ': occ[i],
+                                           'AOs': {}}
+                            for j, detail in enumerate(details):
+                                if per[i] >= threshold:
+                                    ao = [int(detail[0]), detail[1],
+                                          detail[2], per[j][i]]
+                                    mo_dict[mo]['AOs'][j] = ao
+                    line_read_flag = False
+                if not orbital_occupied:
+                    break
+
+        return mo_dict
+
+    def filter_orbitals(self, **kwargs):
+        """
+        Return summed orbital populations for certain atom types/numbers.
+
+        We can select specific atom(s) with the atom(s) keyword:
+            e.g. atom=24 or atoms=[24, 35, 42];
+         specific element(s):
+            e.g. element="Pt" or atoms=["O", "H"],
+         as well as orbital types:
+            e.g. o_type="f"
+        """
+        threshold = 50.0  # Percentage of the total contrib. filtered AOs have
+
+        if 'orbital_type' in kwargs:
+            o_type = kwargs['orbital_type']
+        else:
+            o_type = 'f'  # Default
+
+        if 'atom' in kwargs:
+            atoms = [kwargs['atom']]
+        elif 'atoms' in kwargs:
+            atoms = kwargs['atoms']
+        else:
+            atoms = []
+        if 'element' in kwargs:
+            elements = [kwargs['element']]
+        elif 'elements' in kwargs:
+            elements = kwargs['elements']
+        else:
+            elements = []
+
+        if (not elements and not atoms):
+            sys.exit("OrcaOutput.filter_orbitals(): "
+                     "You need to specify either some atoms or some elements")
+        orb_pop = self.get_orbital_populations()
+        filter_results = []
+        for mo in orb_pop.values():
+            pop_total = 0.0
+            for ao in mo['AOs'].values():
+                if not ao[2][0] == o_type:  # Selecting the first letter.
+                    continue
+                if (atoms and elements):
+                    if (ao[0] in atoms and ao[1] in elements):
+                        pop_total += ao[3]
+                elif atoms:
+                    if ao[0] in atoms:
+                        pop_total += ao[3]
+                else:
+                    if ao[1] in elements:
+                        pop_total += ao[3]
+            if pop_total > threshold:
+                filter_results.append([mo['MO'], mo['energy'],
+                                       o_type, pop_total])
+        return filter_results
