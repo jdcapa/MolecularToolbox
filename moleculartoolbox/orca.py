@@ -674,10 +674,12 @@ class OrcaOutput(object):
                     line_read_flag = False
                 if not orbital_occupied:
                     break
-
+        if not mo_dict:
+            sys.exit("OrcaOutput.get_orbital_populations(): "
+                     "No Loewdin reduced orbital population analysis found")
         return mo_dict
 
-    def filter_orbitals(self, **kwargs):
+    def filter_orbitals(self, orb_pop, **kwargs):
         """
         Return summed orbital populations for certain atom types/numbers.
 
@@ -711,7 +713,6 @@ class OrcaOutput(object):
         if (not elements and not atoms):
             sys.exit("OrcaOutput.filter_orbitals(): "
                      "You need to specify either some atoms or some elements")
-        orb_pop = self.get_orbital_populations()
         filter_results = []
         for mo in orb_pop.values():
             pop_total = 0.0
