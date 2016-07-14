@@ -667,7 +667,7 @@ class OrcaOutput(object):
                                            'occ': occ[i],
                                            'AOs': {}}
                             for j, detail in enumerate(details):
-                                if per[i] >= threshold:
+                                if per[j][i] >= threshold:
                                     ao = [int(detail[0]), detail[1],
                                           detail[2], per[j][i]]
                                     mo_dict[mo]['AOs'][j] = ao
