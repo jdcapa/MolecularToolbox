@@ -743,19 +743,21 @@ class OrcaOutput(object):
         read_flag = False
         partial_charges_spins = []
         for line in self.OUT.split('\n'):
-            if "LOEWDIN REDUCED ORBITAL POPULATIONS PER MO" in line:
+            if "LOEWDIN ATOMIC CHARGES AND SPIN POPULATIONS" in line:
                 read_flag = True
                 continue
             if read_flag:
                 if re_cs.search(line):
+                    print(line)
                     hit = re_cs.search(line).groups()
                     num = int(hit[0])
                     el = hit[1]
                     pc = float(hit[2])
                     ps = float(hit[3])
-                    partial_charges_spins.append(num, el, pc, ps)
-                    self.geometries.atoms[num].add_partial_charge_density(pc)
-                    self.geometries.atoms[num].add_partial_spin_density(ps)
+                    partial_charges_spins.append([num, el, pc, ps])
+                    self.geometry.atoms[num].add_partial_charge_density(pc)
+                    self.geometry.atoms[num].add_partial_spin_density(ps)
             if (read_flag and not line.strip()):
                 break
         return partial_charges_spins
+
