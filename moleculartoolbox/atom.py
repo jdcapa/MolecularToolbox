@@ -26,6 +26,8 @@ class Atom(object):
         symbol = symbol.title()
         self.pt_entry = None
         self.mass = 0.0
+        self.partial_charge = None
+        self.partial_spin = None
         self.number_of_electrons = 0
         re_isotope = re.compile("(\d+)\^*(\w+)")
         if symbol == "X":  # Dummy Atom
@@ -130,8 +132,18 @@ class Atom(object):
             self.coordinates = new_coordinates
             return 1
         else:
-            print ("Could not update coordinates.")
+            print("Could not update coordinates.")
             return 0
+
+    def add_partial_charge_density(self, partial_charge):
+        """Add a partial charge density for this atom."""
+        if not self.partial_charge:
+            self.partial_charge = partial_charge
+
+    def add_partial_spin_density(self, partial_spin):
+        """Add a partial spin density for this atom."""
+        if not self.partial_spin:
+            self.partial_spin = partial_spin
 
     def print_cartesian(self, precision=9, unit="Angstroem", tab=''):
         """Return a string of self.element x y z."""

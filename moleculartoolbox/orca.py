@@ -732,3 +732,30 @@ class OrcaOutput(object):
                 filter_results.append([mo['MO'], mo['energy'],
                                        o_type, pop_total])
         return filter_results
+
+    def get_partial_charges_spins(self):
+        """
+        Return a list of position, element, partial charge and partial spin.
+
+        These densities are also written in the self.geometry atom objects.
+        """
+        re_cs = re.compile("\s*(\d+) (\w+)\s*:\s+([-.\d]+)\s+([-.\d]+)")
+        read_flag = False
+        partial_charges_spins = []
+        for line in self.OUT.split('\n'):
+            if "LOEWDIN REDUCED ORBITAL POPULATIONS PER MO" in line:
+                read_flag = True
+                continue
+            if read_flag:
+                if re_cs.search(line):
+                    hit = re_cs.search(line).groups()
+                    num = int(hit[0])
+                    el = hit[1]
+                    pc = float(hit[2])
+                    ps = float(hit[3])
+                    partial_charges_spins.append(num, el, pc, ps)
+                    self.geometries.atoms[num].add_partial_charge_density(pc)
+                    self.geometries.atoms[num].add_partial_spin_density(ps)
+            if (read_flag and not line.strip()):
+                break
+        return partial_charges_spins
