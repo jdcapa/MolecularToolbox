@@ -86,7 +86,7 @@ class Geometry(object):
         self.has_zmato = False
         self.rms_gradient = 1.0
 
-    def check_mult(self, multiplicity=None, warn=True):
+    def check_mult(self, multiplicity=None, warn=True, charge=None):
         """
         Check whether this multiplicity is possible.
 
@@ -96,6 +96,12 @@ class Geometry(object):
         """
         def is_even(n):
             return [1, 0][n % 2]
+
+        # dirty hack that should be fixed soon
+        if (charge and multiplicity):
+            nElectrons = self.nElectrons(charge)
+        else:
+            nElectrons = self.nElectrons()
 
         if not multiplicity:
             if (self.kwarg["mult"] or self.kwarg["multiplicity"]):
@@ -111,7 +117,7 @@ class Geometry(object):
             sys.exit("Geometry.check_mult(): " +
                      "Multiplicity can't be smaller than 1")
         if is_even(multiplicity):
-            if not is_even(self.nElectrons()):  # if mult is even,
+            if not is_even(nElectrons):  # if mult is even,
                 return multiplicity          # electron_count must be uneven
             else:
                 if warn:
@@ -119,7 +125,7 @@ class Geometry(object):
                         multiplicity, multiplicity + 1))
                 return multiplicity + 1
         else:
-            if is_even(self.nElectrons()):  # if mult is uneven,
+            if is_even(nElectrons):  # if mult is uneven,
                 return multiplicity      # electron_count must be even
             else:
                 if warn:
@@ -361,9 +367,12 @@ class Geometry(object):
         """Return the number of atoms."""
         return len(self.atoms)
 
-    def nElectrons(self):
+    def nElectrons(self, charge=None):
         """Return the electron count of a molecule."""
-        electron_count = -1 * self.charge
+        if charge:
+            electron_count = -1 * charge
+        else:
+            electron_count = -1 * self.charge
         for atom in self.atoms:
             electron_count += atom.number_of_electrons
         return electron_count
