@@ -86,7 +86,7 @@ class Geometry(object):
         self.has_zmato = False
         self.rms_gradient = 1.0
 
-    def check_mult(self, multiplicity=None):
+    def check_mult(self, multiplicity=None, warn=True):
         """
         Check whether this multiplicity is possible.
 
@@ -97,7 +97,6 @@ class Geometry(object):
         def is_even(n):
             return [1, 0][n % 2]
 
-        warn = True
         if not multiplicity:
             if (self.kwarg["mult"] or self.kwarg["multiplicity"]):
                 if self.kwarg["multiplicity"]:
