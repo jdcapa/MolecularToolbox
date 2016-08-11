@@ -409,7 +409,7 @@ class Geometry(object):
             neighbours.append(np.array(tmp_dist)[:, 0].astype(np.int))
         return neighbours
 
-    def coordination_number(self, atomic_number, bonding=[], radius=2.0):
+    def coordination_number(self, atomic_number, **kwargs):
         """
         Approximate the coordination number of an atom.
 
@@ -417,20 +417,30 @@ class Geometry(object):
          determining the surface atoms of a cluster if bonding contains
          cluster atoms only.
         """
+        if "bonding" in kwargs:
+            bonding = kwargs["bonding"]
+        else:
+            bonding = []
+
+        if "tollerance_factor" in kwargs:
+            tollerance_factor = kwargs["tollerance_factor"]
+        else:
+            tollerance_factor = 1.15
+
         coordination_number = 0
         closest_neighbours = self.closest_neighbours()[atomic_number]
         if bonding:
             for i in closest_neighbours:
                 if self.atoms[i].symbol in bonding:
-                    if self.is_bound(atomic_number, i):
+                    if self.is_bound(atomic_number, i, tollerance_factor):
                         coordination_number += 1
         else:
             for i in closest_neighbours:
-                if self.is_bound(atomic_number, i):
+                if self.is_bound(atomic_number, i, tollerance_factor):
                     coordination_number += 1
         return coordination_number
 
-    def is_bound(self, i, j, tollerance_factor=1.1):
+    def is_bound(self, i, j, tollerance_factor=1.15):
         """
         Return > 0 if i and j are bound.
 
