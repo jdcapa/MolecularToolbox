@@ -76,7 +76,8 @@ class OrcaOutput(object):
         # Output file
         out_files = [f for f in os.listdir(source_directory) if '.out' in f]
         out_files_c = out_files[:]
-        re_out_file = re.compile(basename + '[\w\d.]*' + '.out')
+        re_out_file = re.compile(re.subn("\+", "\\+", basename)[0] +
+                                 '[\w\d.]*.out')
         for out_file in out_files_c:
             if not re_out_file.match(out_file):
                 out_files.remove(out_file)
@@ -600,14 +601,24 @@ class OrcaOutput(object):
         """
         Return an MO (occupied) population dictionary.
 
-        treshold: The neccesary contribution of an AO in percent that is
-                  required before it's added to the dictionary.
+        threshold: The necessary contribution of an AO in percent that is
+                   required before it's added to the dictionary.
 
         This uses the Loewdin reduced orbital population analysis of orca which
          can be activated by including the following in the input file:
         %output
            Print[P_OrbPopMO_L]  1
         end
+        mo_dict =   {MO_NUMBER :
+                        {'MO': MO_NUMBER,
+                         'energy': energy in Hartree,
+                         'occ': fractional occupation,
+                         'AOs':
+                            {AO_number:
+                                [Atom_number, element, ao-type, percentage]
+                            }
+                        }
+                    }
         """
         columns = 6  # Orca prints 6 columns at a time
         # MO properties: Number, Energy, Occupation, AO data
@@ -679,6 +690,22 @@ class OrcaOutput(object):
                      "No Loewdin reduced orbital population analysis found")
         return mo_dict
 
+    def core_level_per_atom(self, ao_type="f"):
+        """Return the averaged orbital energies for all atoms."""
+        threshold = 50.0  # Percentage of the total contrib. filtered AOs have
+        mos = self.get_orbital_populations()
+        core_levels = {}
+        for i, atom in enumerate(self.geometry.atoms):
+            core_levels[i] = []
+            percentatge = 0.0
+            for mo in mos.values():
+                for ao in mo['AOs'].values():
+                    if (ao[0] == i and ao[2][0] == ao_type):
+                        percentatge += ao[3]
+                if percentatge > threshold:
+                    core_levels[i].append(mo["energy"])
+        return core_levels
+
     def filter_orbitals(self, orb_pop, **kwargs):
         """
         Return summed orbital populations for certain atom types/numbers.
@@ -748,7 +775,7 @@ class OrcaOutput(object):
                 continue
             if read_flag:
                 if re_cs.search(line):
-                    print(line)
+                    # print(line)
                     hit = re_cs.search(line).groups()
                     num = int(hit[0])
                     el = hit[1]
