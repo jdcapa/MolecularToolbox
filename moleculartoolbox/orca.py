@@ -7,10 +7,12 @@ import sys
 import numpy as np
 from numpy import linalg
 from .geometry import Geometry
+from chemphysconst import Constants
 # from . import systemtools as ST
 
 TAB = " " * 4
 FLOAT = np.float128
+CONST = Constants()
 
 
 class OrcaOutput(object):
@@ -611,7 +613,7 @@ class OrcaOutput(object):
         end
         mo_dict =   {MO_NUMBER :
                         {'MO': MO_NUMBER,
-                         'energy': energy in Hartree,
+                         'energy': energy in eV,
                          'occ': fractional occupation,
                          'AOs':
                             {AO_number:
@@ -620,6 +622,7 @@ class OrcaOutput(object):
                         }
                     }
         """
+        ha2eV = CONST.hartree_energy(unit="eV")
         columns = 6  # Orca prints 6 columns at a time
         # MO properties: Number, Energy, Occupation, AO data
         re_mo_numb = re.compile('\s+(\d+)' * columns)
@@ -674,7 +677,7 @@ class OrcaOutput(object):
                             orbital_occupied = False
                         if (mo not in mo_dict and occ[i] > 0):
                             mo_dict[mo] = {'MO': mo,
-                                           'energy': ene[i],
+                                           'energy': ene[i] * ha2eV,
                                            'occ': occ[i],
                                            'AOs': {}}
                             for j, detail in enumerate(details):
@@ -697,8 +700,8 @@ class OrcaOutput(object):
         core_levels = {}
         for i, atom in enumerate(self.geometry.atoms):
             core_levels[i] = []
-            percentatge = 0.0
             for mo in mos.values():
+                percentatge = 0.0
                 for ao in mo['AOs'].values():
                     if (ao[0] == i and ao[2][0] == ao_type):
                         percentatge += ao[3]
