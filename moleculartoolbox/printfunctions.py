@@ -284,7 +284,6 @@ def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):
 
 def print_optimisation_sumary(energies, shorten=False, precision=9):
     """Print all energies in  nice column."""
-
     e_str = "{{:.{}f}}".format(precision)
     mapping = {"E_SCF": ["E[SCF]/Eh", e_str],
                "E_MP2": ["E[MP2]/Eh", e_str],

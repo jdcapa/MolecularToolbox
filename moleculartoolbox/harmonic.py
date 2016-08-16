@@ -261,7 +261,8 @@ class Harmonic(object):
                                             casting='same_kind', dtype=FLOAT)
         return inertia_derivatives
 
-    def cartesian_displacements(self, anharm_displacement=0.05, unit="bohr"):
+    def cartesian_displacements(self, anharm_displacement=0.05, unit="bohr",
+                                verbose=False):
         """
         Calculate the Cartesian displacements.
 
@@ -294,11 +295,14 @@ class Harmonic(object):
         # This is the actual calculation
         cart_disps = (mat_L.T[nTransRot:] * len_fac * anharm_displacement *
                       np.outer(sqrt_inv_vib, sqrt_inv_masses))
+        if verbose:
+            print("Cartesian displacements in {}:\n".format(unit))
+            print(PF.print_np_2Dmatrix(cart_disps, 4))
 
         return cart_disps, unit
 
     def displaced_geometries(self, print_header=True,
-                             unit="bohr", precision=9):
+                             unit="bohr", precision=9, verbose=False):
         """
         Return a list of strings of back transformed displaced normal coords.
 
@@ -323,7 +327,7 @@ class Harmonic(object):
         nAtoms = self.geometry.nAtoms
         nTransRot = self.geometry.nTransRot()
         harm_inv_cm = self.freq_inv_cm[nTransRot:].real
-        cart_disps = self.cartesian_displacements(0.05, unit)
+        cart_disps = self.cartesian_displacements(0.05, unit, verbose)
 
         for i, disp in enumerate(cart_disps[0]):
             # Header setup
