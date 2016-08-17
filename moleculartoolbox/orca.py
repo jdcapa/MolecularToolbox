@@ -445,7 +445,7 @@ class OrcaOutput(object):
 
     def read_hessian(self, threshold=1e-10):
         """
-        Return the Oca Hessian matrix read from hess_file.
+        Return the Orca Hessian matrix read from hess_file.
 
         Units: Eh / (bohr^2)
         The threshold can be used to remove translational inaccuracies, e.g. a

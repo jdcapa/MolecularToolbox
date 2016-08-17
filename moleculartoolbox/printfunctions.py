@@ -78,7 +78,7 @@ def print_np_2Dmatrix(mat, precision=9):
     for line in mat:
         for element in line:
             element = np.complex(element)
-            output_string += print_complex(element, precision)  # + TAB
+            output_string += print_complex(element, 1.0, precision)  # + TAB
         output_string += "\n"  # + TAB
     return output_string  # [:-len(TAB)]
 

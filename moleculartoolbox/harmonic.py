@@ -296,8 +296,13 @@ class Harmonic(object):
         cart_disps = (mat_L.T[nTransRot:] * len_fac * anharm_displacement *
                       np.outer(sqrt_inv_vib, sqrt_inv_masses))
         if verbose:
+            print("h_bar\n", h_bar)
+            print("harm_vib\n", harm_vib)
+            print("sqrt_inv_masses\n", sqrt_inv_masses)
+            print("sqrt_inv_vib\n", sqrt_inv_vib)
+            print("tmpOuter\n", np.outer(sqrt_inv_vib, sqrt_inv_masses))
             print("Cartesian displacements in {}:\n".format(unit))
-            print(PF.print_np_2Dmatrix(cart_disps, 4))
+            print(PF.print_np_2Dmatrix(cart_disps, 8))
 
         return cart_disps, unit
 
@@ -346,9 +351,9 @@ class Harmonic(object):
                 #  atom.coordinates are given in Angstroem
                 v_positive = atom.coordinates * len_fac + v
                 v_negative = atom.coordinates * len_fac - v
-                tmp_pos += atom.symbol \
+                tmp_pos += atom.element \
                     + (vec_str * 3).format(*v_positive) + "\n"
-                tmp_neg += atom.symbol \
+                tmp_neg += atom.element \
                     + (vec_str * 3).format(*v_negative) + "\n"
             output_strings.append(tmp_pos[:-1])
             output_strings.append(tmp_neg[:-1])
