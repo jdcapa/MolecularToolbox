@@ -244,7 +244,7 @@ class VPT2(object):
                     for m in range(nVib):
                         if check_fermi(k, l, m):
                             if self.print_level:
-                                print "Fermi resonance: w_%s~2w_%s" % (k, m)
+                                print("Fermi resonance: w_%s~2w_%s" % (k, m))
                             # Eq. 6b Amos/Handy/Jayatilaka
                             chi_t2 += (0.125 * cubic[k, k, m]**2 *
                                        (1 / w[m] + 0.25 / (2 * w[k] + w[m])))
@@ -266,8 +266,8 @@ class VPT2(object):
                         chi_t2 -= cubic[k, k, m] * cubic[l, l, m] / w[m]
                         if check_fermi(k, l, m):
                             if self.print_level:
-                                print ("Fermi resonance: "
-                                       "w_%s~w_%s+w_%s" % (k, l, m))
+                                print("Fermi resonance: "
+                                      "w_%s~w_%s+w_%s" % (k, l, m))
                             chi_t3 -= (cubic[k, l, m]**2 *
                                        omega_fermi(w[k], w[l], w[m]))
                         else:
@@ -388,7 +388,7 @@ class VPT2(object):
          nVib = 3, ijk_quanta = {1:2, 2:1} --> state = np.array([0, 2, 1]).
         """
         state = np.zeros((self.nVib), dtype=np.int16)
-        for i, quanta in ijk_quanta.iteritems():
+        for i, quanta in ijk_quanta.items():
             state[i] = np.int16(quanta)
         return state
 
@@ -668,7 +668,7 @@ class VPT2(object):
             for raw_state in resonance[2]:
                 state = self.generate_state(raw_state)
                 h0 = self.h0vib(state)
-                print zpe_anharm, h0, h0 - zpe_anharm
+                print(zpe_anharm, h0, h0 - zpe_anharm)
 
 
 # class VibRotErrors(Exception):
