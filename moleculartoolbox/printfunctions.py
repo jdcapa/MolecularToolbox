@@ -83,7 +83,7 @@ def print_np_2Dmatrix(mat, precision=9):
     return output_string  # [:-len(TAB)]
 
 
-def print_VibRot_constants(self, alpha, geometry, precision=8):
+def print_VibRot_constants(alpha, geometry, precision=8):
     """Print the Vibrational-rotational constants alpha_k."""
     nVib, nTransRot = geometry.nVib(), geometry.nTransRot()
     output_string = "Vibrational-Rotational constants:\n\n"

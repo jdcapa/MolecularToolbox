@@ -128,7 +128,7 @@ class VPT2_ForceFields(object):
                     k *= 2
                     pos = nc_Hessians[k][i + nTransRot, j + nTransRot].real
                     neg = nc_Hessians[k + 1][i + nTransRot, j + nTransRot].real
-                    cubic[i, j, k / 2] = (pos - neg) / disp
+                    cubic[i, j, int(k / 2)] = (pos - neg) / disp
         cubic = self.check_cubic(cubic)
         self.cubic = cubic
         self.has_cubic = True
@@ -324,7 +324,7 @@ class VPT2(object):
         w = self.harm_freq
 
         cubic = self.cubic
-        moI = self.geometry.moment_of_inertia_tensor()  # u*Angs^2
+        moI = self.geometry.rot_prop.moment_of_inertia_tensor()  # u*Angs^2
         moI_derivs = self.harmonic.inertia_derivatives()  # u^1/2*Angs
         # The moI derivative needs to be converted to the unit of cm:
         moI_deriv_conv = np.pi * np.sqrt(u_to_kg * c / h) * 1e-9
@@ -360,9 +360,9 @@ class VPT2(object):
             for b in range(3):
                 for l in range(nVib):
                     if not check_fermi(l, k):
-                        # it seems that this term needs to be negative when
-                        # compared to cfour (moI_deriv definition?)
-                        negAlpha[b, k, 3] -= (2 * b_e[b]**2 * cubic[k, k, l] *
+                        # it seems that this term needs to SOMETIMES be negative 
+                        # when compared to cfour (moI_deriv definition?)
+                        negAlpha[b, k, 3] += (2 * b_e[b]**2 * cubic[k, k, l] *
                                               moI_derivs[l, b, b] *
                                               moI_deriv_conv / w[l]**1.5)
         return -negAlpha, coriolis_resonances
@@ -600,7 +600,7 @@ class VPT2(object):
             # Term 5
             for l in range(nVib):
                 for m in range(nVib):
-                    if (k < l and l < m):
+                    if (k < l and l < m and k < m):
                         zpe -= ((cubic[k, l, m]**2 * w[k] * w[l] * w[m]) /
                                 (4.0 * ((w[k] + w[l] + w[m]) *
                                         (w[k] - w[l] - w[m]) *

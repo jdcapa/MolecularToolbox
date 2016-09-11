@@ -244,7 +244,7 @@ class Harmonic(object):
     def inertia_derivatives(self):
         """Return the inertia derivatives a_k^ab in [u^1/2 * Angs].
 
-        (3xNx3N tensor) calculated according to
+        (3Nx3x3 tensor) calculated according to
             Papousek/Alijev, 1982, isbn: 9780444997371, p. 277
         """
         nAtoms = self.geometry.nAtoms
@@ -259,6 +259,12 @@ class Harmonic(object):
         inertia_derivatives = 2 * np.einsum('ace,bde,i,ic,dik->kab',
                                             e, e, sqrt_masses, coords, l,
                                             casting='same_kind', dtype=FLOAT)
+        print("Inertia derivatives")
+        for k in range(nVib):
+            for a in range(3):
+                for b in range(3):
+                    print (k, a, b, "{:20.10f}".format(inertia_derivatives[k,a,b]))
+        sys.exit()
         return inertia_derivatives
 
     def cartesian_displacements(self, anharm_displacement=0.05, unit="bohr",
@@ -336,7 +342,7 @@ class Harmonic(object):
 
         for i, disp in enumerate(cart_disps[0]):
             # Header setup
-            freq = PF.print_complex(harm_inv_cm[i], precision)
+            freq = PF.print_complex(harm_inv_cm[i], 1.0, precision)
             header_str = freq_str.format(nAtoms, i + 1, freq)
             if print_header:
                 tmp_pos = header_str + "positive displacement\n"

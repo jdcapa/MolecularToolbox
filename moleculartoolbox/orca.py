@@ -186,6 +186,7 @@ class OrcaOutput(object):
         """
         with open(self.OUT_FILE) as out_file:
             sp_flag = False
+            grad_flag = False
             for line in out_file:
                 if '* Geometry Optimization Run *' in line:
                     return 'Geo_Opt'
@@ -199,6 +200,8 @@ class OrcaOutput(object):
                         return 'Hessian_Calc'
                     if grad_flag:
                         return 'Grad+Hessian_Calc'
+                elif "VPT2" in line:
+                    return 'Hessian_Calc'
         if sp_flag:
             return 'Energy_Calc'
         elif grad_flag:
@@ -443,7 +446,7 @@ class OrcaOutput(object):
         else:
             return 0.0
 
-    def read_hessian(self, threshold=1e-10):
+    def read_hessian(self, threshold=1e-10, hessfile="self"):
         """
         Return the Orca Hessian matrix read from hess_file.
 
@@ -455,9 +458,13 @@ class OrcaOutput(object):
         """
         if not self.has_hessian:
             return
+        if hessfile != "self":
+            hess_file_name = hessfile
+        else:
+            hess_file_name = self.HESSIAN_FILE
 
         no_colums = 5.0
-        with open(self.HESSIAN_FILE) as hess_f:
+        with open(hess_file_name) as hess_f:
             line = hess_f.readline()
             while line:
                 line = hess_f.readline()
@@ -528,7 +535,6 @@ class OrcaOutput(object):
     def get_displaced_geometries(self):
         """Return a list of Hessians, one for each displacement."""
         geometries = []
-        disps = self.find_displacements()
         nTransRot = self.geometry.nTransRot()
         threeN = 3 * self.geometry.nAtoms
         number_of_displacements = 2 * (threeN - nTransRot)
@@ -541,16 +547,27 @@ class OrcaOutput(object):
                          len(geometries), number_of_displacements))
         return geometries
 
-    def get_displaced_Hessians(self):
+    def get_displaced_Hessians(self, mode="folders"):
         """Return a list of Hessians, one for each displacement."""
         hessians = []
-        disps = self.find_displacements()
         nTransRot = self.geometry.nTransRot()
         threeN = 3 * self.geometry.nAtoms
         number_of_displacements = 2 * (threeN - nTransRot)
-        for disp in disps:
-            orca_out = OrcaOutput(disp[0], disp[1])
-            hessians.append(orca_out.hessian)
+        
+        if mode == "folders":
+            disps = self.find_displacements()
+            for disp in disps:
+                orca_out = OrcaOutput(disp[0], disp[1])
+                hessians.append(orca_out.hessian)
+        elif mode == "hess files":
+            disp_hessnames = []
+            for d in range(number_of_displacements):
+                hess = "{}_D{:03d}.hess".format(self.basename, d + 1)
+                if not os.path.exists(hess):
+                    sys.exit("OrcaOutput.get_displaced_Hessians(): "
+                             "Could not find {}.".format(hess))
+                hessians.append(self.read_hessian(1e-12, hess))
+        
         if len(hessians) != number_of_displacements:
             sys.exit("OrcaOutput.get_displaced_Hessians(): "
                      "Could only find {} of {} displacements.".format(
