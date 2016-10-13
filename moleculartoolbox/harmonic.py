@@ -212,11 +212,11 @@ class Harmonic(object):
         threeN = 3 * nAtoms
 
         e = CONST.third_order_LeviCevita_Tensor()
-        l = np.zeros((3, nAtoms, threeN), dtype=FLOAT)
+        mat_l = np.zeros((3, nAtoms, threeN), dtype=FLOAT)
         for i in range(3):
-            l[i] = self.mat_L[i::3, :]
+            mat_l[i] = self.mat_L[i::3, :]
         # This is a much cleaner solution than those awful for-loops
-        cz = np.einsum('abc,bik,cil->akl', e, l, l,
+        cz = np.einsum('abc,bik,cil->akl', e, mat_l, mat_l,
                        casting='same_kind', dtype=FLOAT)
 
         # The following is deprecated (it's still kept in case I need to port):

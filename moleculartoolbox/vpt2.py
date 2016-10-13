@@ -563,7 +563,7 @@ class VPT2(object):
             return 0.0
 
     def h1vib(self, state_i, state_j):
-        """Return the energy of the 1st anharmonic transition,i.e. <i|H_1|j>."""
+        """Return the energy of the 1st anharm. transition, i.e. <i|H_1|j>."""
         h1 = 0.0
         if (len(state_i) == self.nVib and len(state_j) == self.nVib):
             state_diff = np.abs(state_j - state_i)
@@ -736,8 +736,8 @@ class VPT2(object):
         Return Fermi-resonances in an automaitic manner.
 
         It analyses the harmonic derivative of the perturbative corrections to
-         the fundamental frequencies d_mat and retrun resonant states as well as
-         their harmonic frequencies.
+         the fundamental frequencies d_mat and retrun resonant states as well
+         as their harmonic frequencies.
 
         Two cases:
             strong: w_i ~ 2 w_j     (D[i,i] = -X, D[i,j] = 2X)
@@ -777,7 +777,11 @@ class VPT2(object):
         # return []
 
     def effective_hamiltonian(self, anharmonic_const):
-        """Return an effective Hamiltonian constructed from Fermi resonances."""
+        """
+        Return an effective Hamiltonian constructed from Fermi resonances.
+
+        This is work in progress....not yet usable.
+        """
         resonances = self.detect_Fermi_resonances(self.mat_D)
         zpe_anharm = self.zero_point_energy(anharmonic_const)
         for resonance in resonances:
