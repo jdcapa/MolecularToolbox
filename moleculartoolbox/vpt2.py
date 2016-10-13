@@ -716,7 +716,7 @@ class VPT2(object):
             # Term 5
             for l in range(nVib):
                 for m in range(nVib):
-                    if (k < l and l < m):
+                    if (k < l and l < m and k < m):
                         zpe -= ((cubic[k, l, m]**2 * w[k] * w[l] * w[m]) /
                                 (4.0 * ((w[k] + w[l] + w[m]) *
                                         (w[k] - w[l] - w[m]) *

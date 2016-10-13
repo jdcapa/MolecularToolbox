@@ -534,10 +534,10 @@ class OrcaOutput(object):
     def get_displaced_geometries(self):
         """Return a list of Hessians, one for each displacement."""
         geometries = []
-        disps = self.find_displacements()
         nTransRot = self.geometry.nTransRot()
         threeN = 3 * self.geometry.nAtoms
         number_of_displacements = 2 * (threeN - nTransRot)
+        disps = self.find_displacements()
         for disp in disps:
             orca_out = OrcaOutput(disp[0], disp[1])
             geometries.append(orca_out.geometry)
@@ -553,7 +553,6 @@ class OrcaOutput(object):
         nTransRot = self.geometry.nTransRot()
         threeN = 3 * self.geometry.nAtoms
         number_of_displacements = 2 * (threeN - nTransRot)
-
         if mode == "folders":
             disps = self.find_displacements()
             for disp in disps:
@@ -567,7 +566,6 @@ class OrcaOutput(object):
                     sys.exit("OrcaOutput.get_displaced_Hessians(): "
                              "Could not find {}.".format(hess))
                 hessians.append(self.read_hessian(1e-12, hess))
-
         if len(hessians) != number_of_displacements:
             sys.exit("OrcaOutput.get_displaced_Hessians(): "
                      "Could only find {} of {} displacements.".format(

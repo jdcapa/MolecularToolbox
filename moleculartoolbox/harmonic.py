@@ -264,7 +264,6 @@ class Harmonic(object):
         #         for b in range(3):
         #             print(k, a, b, "{:20.10f}".format(
         #                 inertia_derivatives[k, a, b]))
-
         return inertia_derivatives
 
     def cartesian_displacements(self, anharm_displacement=0.05, unit="bohr",
