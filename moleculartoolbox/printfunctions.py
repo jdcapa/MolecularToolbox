@@ -83,7 +83,7 @@ def print_np_2Dmatrix(mat, precision=9):
     return output_string  # [:-len(TAB)]
 
 
-def print_VibRot_constants(self, alpha, geometry, precision=8):
+def print_VibRot_constants(alpha, geometry, precision=8):
     """Print the Vibrational-rotational constants alpha_k."""
     nVib, nTransRot = geometry.nVib(), geometry.nTransRot()
     output_string = "Vibrational-Rotational constants:\n\n"
@@ -254,7 +254,7 @@ def print_normal_coordinates(normal_modes, nTransRot=6):
     for normal_mode in normal_modes:
         output_string += sFormat_Vib.format(
             *[f.real for f in normal_mode[nTransRot:]])
-    print (output_string)
+    print(output_string)
 
 
 def print_harmonic_VPT2_derivatives(vpt2_derivatives, harmonic, precision=3):

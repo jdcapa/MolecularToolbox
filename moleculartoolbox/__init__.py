@@ -5,3 +5,6 @@ from .harmonic import Harmonic
 from .orca import OrcaOutput
 from .cfour import CfourOutput
 from .energy import Energy
+from .vpt2 import VPT2_ForceFields
+from .vpt2 import VPT2_file
+from .vpt2 import VPT2

@@ -1,8 +1,11 @@
 # -*- coding: UTF-8 -*-
 """This module contains functions related to the VPT2 approximation."""
 import sys
+import os
 import numpy as np
 from chemphysconst import Constants
+from . import Geometry
+from . import Harmonic
 # from numpy import linalg
 # from . import printfunctions as PF
 
@@ -128,7 +131,7 @@ class VPT2_ForceFields(object):
                     k *= 2
                     pos = nc_Hessians[k][i + nTransRot, j + nTransRot].real
                     neg = nc_Hessians[k + 1][i + nTransRot, j + nTransRot].real
-                    cubic[i, j, k / 2] = (pos - neg) / disp
+                    cubic[i, j, int(k / 2)] = (pos - neg) / disp
         cubic = self.check_cubic(cubic)
         self.cubic = cubic
         self.has_cubic = True
@@ -158,6 +161,117 @@ class VPT2_ForceFields(object):
         self.semiquartic = semiquartic
         self.has_semiquartic = True
         return 1
+
+
+class VPT2_file(object):
+    """
+    This class reads in a .vpt2 file resulting from an ORCA VPT2 calculation.
+    """
+    def __init__(self, vpt2_file_path):
+        super(VPT2_file, self).__init__()
+        self.file_path = self.check_vpt2_file(vpt2_file_path)
+
+        self.has_geometry = False
+        self.has_harmonic = False
+        self.has_cubic = False
+        self.has_semiquartic = False
+
+        self.geometry = self.get_geometry()
+        self.harmonic = self.get_harmonic()
+        self.cubic = self.get_cubic()
+        self.semiquartic = self.get_semiquartic()
+
+    def check_vpt2_file(self, file_path):
+        """Return the VPT2 file as a string."""
+        if not os.path.exists(file_path):
+            sys.exit("VPT2_file.read_vpt2_file(): "
+                     "Could not find vpt2 file.")
+        return file_path
+
+    def get_geometry(self):
+        """Return the geometry object."""
+        with open(self.file_path) as file_object:
+            line = file_object.readline()
+            while line:
+                if "Atomic coordinates in Angstroem" in line:
+                    line = file_object.readline()
+                    raw_geom = []
+                    for i in range(int(line.strip())):
+                        split = file_object.readline().split()
+                        raw_geom.append([i, split[0], split[2],
+                                         split[3], split[4], split[5]])
+
+                    self.has_geometry = True
+                    break
+                line = file_object.readline()
+        if not self.has_geometry:
+            sys.exit("VPT2_file.get_geometry(): "
+                     "Could not find a valid geometry.")
+        return Geometry(raw_geom, use_own_masses=True, distance_units="Angs")
+
+    def get_harmonic(self):
+        """Return the harmonic object."""
+        with open(self.file_path) as file_object:
+            line = file_object.readline()
+            while line:
+                if "Hessian[i][j] in Eh/(bohr**2)" in line:
+                    line = file_object.readline()
+                    size = tuple(int(i) for i in line.strip().split())
+                    hessian = np.zeros(size, FLOAT)
+                    for i in range(np.prod(size)):
+                        split = file_object.readline().strip().split()
+                        hessian[int(split[0]), int(split[1])] = FLOAT(split[2])
+                    self.has_harmonic = True
+                    break
+                line = file_object.readline()
+        if not self.has_harmonic:
+            sys.exit("VPT2_file.get_geometry(): "
+                     "Could not find a valid Hessian.")
+        return Harmonic(self.geometry, hessian=hessian)
+
+    def get_cubic(self):
+        """Return the cubic force field as a nxnxn numpy matrix."""
+        with open(self.file_path) as file_object:
+            line = file_object.readline()
+            while line:
+                if "Cubic[i][j][k] force field in 1/cm" in line:
+                    line = file_object.readline()
+                    size = tuple(int(i) for i in line.strip().split())
+                    cubic = np.zeros(size, FLOAT)
+                    for i in range(np.prod(size)):
+                        split = file_object.readline().strip().split()
+                        cubic[int(split[0]),
+                              int(split[1]),
+                              int(split[2])] = FLOAT(split[3])
+                    self.has_cubic = True
+                    break
+                line = file_object.readline()
+        if not self.has_cubic:
+            sys.exit("VPT2_file.get_geometry(): "
+                     "Could not find a valid cubic force field.")
+        return cubic
+
+    def get_semiquartic(self):
+        """Return the semiquartic force field as a nxnxn numpy matrix."""
+        with open(self.file_path) as file_object:
+            line = file_object.readline()
+            while line:
+                if "Semi-quartic[i][j][k][k] force field in 1/cm" in line:
+                    line = file_object.readline()
+                    size = tuple(int(i) for i in line.strip().split())
+                    semiquartic = np.zeros(size, FLOAT)
+                    for i in range(np.prod(size)):
+                        split = file_object.readline().strip().split()
+                        semiquartic[int(split[0]),
+                                    int(split[1]),
+                                    int(split[2])] = FLOAT(split[3])
+                    self.has_semiquartic = True
+                    break
+                line = file_object.readline()
+        if not self.has_semiquartic:
+            sys.exit("VPT2_file.get_geometry(): "
+                     "Could not find a valid semiquartic force field.")
+        return semiquartic
 
 
 class VPT2(object):
@@ -205,8 +319,8 @@ class VPT2(object):
         cubic = self.cubic
         semiquartic = self.semiquartic
 
-        fermi_resonances_overwiew = self.detect_Fermi_resonances(self.mat_D)
-        fermi_resonances = [set(f[0]) for f in fermi_resonances_overwiew]
+        fermi_resonances_overview = self.detect_Fermi_resonances(self.mat_D)
+        fermi_resonances = [set(f[0]) for f in fermi_resonances_overview]
 
         def omega(w_k, w_l, w_m):
             # Eq. 6c Amos/Handy/Jayatilaka (doi:10.1063/1.461259)
@@ -324,7 +438,7 @@ class VPT2(object):
         w = self.harm_freq
 
         cubic = self.cubic
-        moI = self.geometry.moment_of_inertia_tensor()  # u*Angs^2
+        moI = self.geometry.rot_prop.moment_of_inertia_tensor()  # u*Angs^2
         moI_derivs = self.harmonic.inertia_derivatives()  # u^1/2*Angs
         # The moI derivative needs to be converted to the unit of cm:
         moI_deriv_conv = np.pi * np.sqrt(u_to_kg * c / h) * 1e-9
@@ -362,6 +476,7 @@ class VPT2(object):
                     if not check_fermi(l, k):
                         # it seems that this term needs to be negative when
                         # compared to cfour (moI_deriv definition?)
+                        # print("{:.9f}".format(moI_derivs[l, b, b]))
                         negAlpha[b, k, 3] -= (2 * b_e[b]**2 * cubic[k, k, l] *
                                               moI_derivs[l, b, b] *
                                               moI_deriv_conv / w[l]**1.5)
@@ -403,7 +518,7 @@ class VPT2(object):
         n_qanta -= 1
         return self.recursive_states(seed, n_qanta, states)
 
-    def generate_exited_states(self, initial_state, n_quantas):
+    def generate_excited_states(self, initial_state, n_quantas):
         """
         Generate a list of possible excited Vibrational states.
 
@@ -416,16 +531,16 @@ class VPT2(object):
         for i in range(self.nVib):
             for m in pm:
                 seed.append((m * eye[i]))
-        exited_states = []
+        excited_states = []
         concatenated = np.concatenate([pm * x for x in n_quantas])
         for n_quanta in n_quantas:
             for pre_state in self.recursive_states(seed, n_quanta, seed):
                 if np.sum(pre_state) in concatenated:
-                    exited_state = initial_state + pre_state
-                    if np.min(exited_state) >= 0:
-                        if exited_state.tolist() not in exited_states:
-                            exited_states.append(exited_state.tolist())
-        return exited_states
+                    excited_state = initial_state + pre_state
+                    if np.min(excited_state) >= 0:
+                        if excited_state.tolist() not in excited_states:
+                            excited_states.append(excited_state.tolist())
+        return excited_states
 
     def h0vib(self, state_i):
         """
@@ -452,9 +567,9 @@ class VPT2(object):
         h1 = 0.0
         if (len(state_i) == self.nVib and len(state_j) == self.nVib):
             state_diff = np.abs(state_j - state_i)
+            nz = np.nonzero(state_diff)[0]
+            # nz:  there could be up to 3 non-zero indices
             if np.sum(state_diff) == 3:
-                # there could be up to 3 non-zero indices
-                nz = np.nonzero(state_diff)[0]
                 if len(nz) == 1:
                     gs = min(state_i[nz[0]], state_j[nz[0]])
                     h1 += (self.qn_i(3, gs, 3) *
@@ -480,7 +595,6 @@ class VPT2(object):
                            self.cubic[nz[0], nz[1], nz[2]])
             elif np.sum(state_diff) == 1:
                 # print state_diff, state_i, state_j
-                nz = np.nonzero(state_diff)[0]  # the only! nonzero_index
                 gs = min(state_i[nz[0]], state_j[nz[0]])
                 for k in range(self.nVib):
                     # print k, nz[0], gs
@@ -504,7 +618,8 @@ class VPT2(object):
         Return the D-matrix.
 
         This represents the harmonic derivative of the perturbative corrections
-         to the fundamental frequencies d (dimensionless) according to Matthews.
+         to the fundamental frequencies d (dimensionless) according to
+         Matthews.
             doi: 10.1080/00268970902769463 (equation 3,4)
         >> The routine is a bit slow for large systems, check if improvable!
         """
@@ -523,7 +638,7 @@ class VPT2(object):
         d_0 = np.zeros((nVib), dtype=FLOAT)
 
         state_0 = self.generate_state({})
-        excited_states = self.generate_exited_states(state_0, [1, 3])
+        excited_states = self.generate_excited_states(state_0, [1, 3])
 
         for a in range(nVib):
             # d^0_a Term1
@@ -532,18 +647,19 @@ class VPT2(object):
                 coriolis = 0.0
                 for alpha in range(3):
                     coriolis += (cz[alpha, a, b])**2 * b_e[alpha]
+                # print("{:>12.4f}".format(coriolis))
                 d_0[a] += 0.25 * (1 / w[b] - w[b] / w[a]**2) * coriolis
-
             # d^0_a Term2
             for excited_state_k in excited_states:
                 h1vib_squared = self.h1vib(state_0, excited_state_k)**2
                 delta_e_ik = (self.h0vib(state_0) -
                               self.h0vib(excited_state_k))
                 d_0[a] += (h1vib_squared / delta_e_ik**2) * excited_state_k[a]
-
+        # print(d_0)
+        # sys.exit()
         for i in range(nVib):
             state_i = self.generate_state({i: 1})
-            excited_states = self.generate_exited_states(state_i, [1, 3])
+            excited_states = self.generate_excited_states(state_i, [1, 3])
             for a in range(nVib):
                 # Term 1
                 for b in range(nVib):
